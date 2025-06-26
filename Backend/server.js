@@ -1,21 +1,23 @@
-const express=require('express');
-const connectDB=require('./config/db');
+const express = require('express');
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/authroutes')
 
-const port=3000;
+const port = 3000;
 
-const app=express();
+const app = express();
 app.use(express.json());
 
-connectDB().then(()=>{
+connectDB().then(() => {
     console.log("Database connected successfully");
-}).
-catch(()=>{
-     console.log("Database connectionn failed");
-});
+})
 
+app.get('/', (req, res) => {
+    return res.status(200).json({ message: "Working" });
+})
+app.use('/auth', authRoutes);
 
-app.listen(port,()=>{
+app.listen(port, () => {
     console.log(`server is running on ${port}`);
 });
-                
+
 
