@@ -1,6 +1,4 @@
-// const nodeMailer=require("nodeMailer");
-
-
+const nodeMailer=require("nodemailer");
 
 const sendEmail = async (options) => {
     console.log("sending mail");
