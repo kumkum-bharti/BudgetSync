@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import Textinput from '../components/Textinput';
 import '../index.css';
+import axios from 'axios';
+
 
 export default function Register() {
    const [name, setName] = useState('');
@@ -9,8 +11,13 @@ export default function Register() {
    const [email, setEmail] = useState('');
 
    function handleSubmit(e) {
-      e.preventDefault();
-      console.log(name, phone, email);
+      try{
+         const res=axios.post("http://localhost:3000/auth/beginRegister");
+         console.log('Response:', res.data);
+      
+    } catch (err) {
+      console.error('Error submitting form:', err.response?.data || err.message);
+    }
    }
 
    function Button() {
@@ -27,10 +34,10 @@ export default function Register() {
    }
 
    return (
-      <div className="bg-gradient-to-r from-pink-400 to-purple-600 min-h-screen flex items-center justify-center">
+      <div className="bg-gradient-to-r from-pink-200 to-purple-400 min-h-screen flex items-center justify-center">
          <form
             onSubmit={handleSubmit}
-            className="  space-y-4 bg-white bg-opacity-20 backdrop-blur-md p-8 rounded-lg shadow-lg w-80 "
+            className="  space-y-4 bg-white bg-opacity-20 backdrop-blur-md p-8 rounded-lg shadow-lg w-full max-w-2xl mx-auto "
          >
             <Textinput
                label="Name"
