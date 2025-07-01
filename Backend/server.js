@@ -1,11 +1,13 @@
 const express = require('express');
 const connectDB = require('./config/db');
-const authRoutes = require('./routes/authroutes')
+const authRoutes = require('./routes/authroutes');
+const cors =require('cors');
 
 const port = 3000;
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 connectDB().then(() => {
     console.log("Database connected successfully");

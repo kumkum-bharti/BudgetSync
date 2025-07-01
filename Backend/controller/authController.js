@@ -25,6 +25,20 @@ const beginRegister=async(req,res)=>{
     }
 }
 
+const verify=async(req,res)=>{
+    try{
+        const {verifynum,email}=req.body;
+
+        const flag= await verifyOtp(email,verifynum);
+        return res.status(200).json({flag:flag});
+    }   
+    catch(err){
+        return res.status(500).json({message:"Error verifying otp",error:err.message });
+    }
+        
+}
+
+
 const register=async(req,res)=>{
     try{
         const {verifynum,password,name,phone,email}=req.body;
@@ -48,4 +62,4 @@ const register=async(req,res)=>{
 }
 
 
-module.exports= {beginRegister,register};
+module.exports= {beginRegister,register,verify};

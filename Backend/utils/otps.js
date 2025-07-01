@@ -31,12 +31,13 @@ const verifyOtp=async(email,verifynum)=>{
             console.log("OTP not found");
             return false;
         }
+        console.log(checkotp.otpnum)
 
         
         const now = Date.now();
         const otpCreatedAt = new Date(checkotp.createdAt).getTime();
 
-        if (now - otpCreatedAt > 5 * 60 * 1000) {
+        if (now - otpCreatedAt > 15* 60 * 1000) {
             console.log("OTP expired");
             await otp.deleteOne({ email }); 
             return false;
