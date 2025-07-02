@@ -12,6 +12,12 @@ export default function Register() {
 
    const navigate = useNavigate();
 
+   const data={
+      name:name,
+      phone:phone,
+      email:email
+   }
+
    const isDisabled = !name || !phone || !email;
 
    const handleSubmit = async (e) => {
@@ -19,7 +25,7 @@ export default function Register() {
       try {
          const res = await axios.post("http://localhost:3000/auth/beginRegister",
             { name, phone, email });
-         navigate('/Register', { state:email})
+         navigate('/Register', { state:data})
          console.log('Response:', res.data);
 
       } catch (err) {

@@ -42,19 +42,14 @@ const verify=async(req,res)=>{
 const register=async(req,res)=>{
     try{
         const {verifynum,password,name,phone,email}=req.body;
-
-        const flag= await verifyOtp(email,verifynum);
-        if(flag){
-            const salt=await bcrypt.genSalt(10);
-            const hashedPassword= await bcrypt.hash(password,salt);
-            const newUser=new User({name,phone,email,password:hashedPassword})
-            await newUser.save();
-                return res.status(201).json({message:"User registered Successfully."});
+        const salt=await bcrypt.genSalt(10);
+        const hashedPassword= await bcrypt.hash(password,salt);
+        const newUser=new User({name,phone,email,password:hashedPassword})
+        await newUser.save();
+        return res.status(201).json({message:"User registered Successfully."});
         }
-        else{
-            console.log("Wrong otp");
-        }
-    }   
+        
+      
     catch(err){
         return res.status(500).json({message:"Error registering user",error:err.message });
     }
