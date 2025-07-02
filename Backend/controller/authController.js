@@ -1,6 +1,9 @@
 const User=require('../models/User');
+const dotenv=require('dotenv');
 const bcrypt=require('bcrypt');
 const {sendOtp,verifyOtp}=require('../utils/otps.js');
+const jwt=require('jsonwebtoken');
+const secret=process.env.secret;
 
 
 const beginRegister=async(req,res)=>{
@@ -56,5 +59,46 @@ const register=async(req,res)=>{
         
 }
 
+const login=async(req,res)=>{
+    try{
+        const{email,password}=req.body;
+        const user=await User.findOne({email});
+        
+        if(!user)
+          return res.status(404).json({message:"Error logging in"})
+        
+        const isMatch=await bcrypt.compare(password,user.password);
+        if(!isMatch){
+             return res.status(400).json({ message: "Invalid email or password" });
+        }
+        
+        
+        const token=jwt.sign({ id:user._id }, secret, { expiresIn: '2400h' });
+        if(!token){
+            return res.status(500).json({message:"Error generating token"});
+        }
+       
+        user.token=token;
+        await user.save();
 
-module.exports= {beginRegister,register,verify};
+
+        res.status(200).json({messgae:"Login Successfull",token:token, 
+                                    user:{
+                                        id:user._id,
+                                        name:user.name,
+                                        email:user.email
+                            }})
+
+        
+
+    }
+        
+
+    catch(err){
+        return res.status(500).json({message:"login Failed",error:err.message})
+    }
+        
+}
+
+
+module.exports= {beginRegister,register,verify,login};
