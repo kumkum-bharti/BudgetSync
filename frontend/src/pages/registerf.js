@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import {useLocation} from 'react-router-dom';
+import {useLocation,useNavigate} from 'react-router-dom';
 import Textinput from '../components/Textinput';
 import '../index.css';
 import axios from 'axios';
+
 
 
 export default function Register() {
@@ -12,7 +13,7 @@ export default function Register() {
    
    const {name,phone,email}=useLocation().state;
 
-  
+  const navigate=useNavigate();
 
    const isDisabled = !verifynum ;
    const isPassword=!password;
@@ -26,6 +27,7 @@ export default function Register() {
                                     {name,phone,email,password});
             console.log('Response',res.data);
             alert("Registered Successfully!");
+            navigate('/login')
         }
         else{
          const res = await axios.post("http://localhost:3000/auth/verify",
