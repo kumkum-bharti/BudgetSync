@@ -1,64 +1,85 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Textinput from '../components/Textinput';
-import '../index.css';
+import { motion } from 'framer-motion';
 import axios from 'axios';
-
+import '../index.css';
 
 export default function Login() {
-   const [email, setEmail] = useState('');
-   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const isDisabled = !email || !password;
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post("http://localhost:3000/auth/login", { email, password });
+      console.log('Response:', res.data);
+      alert("Login Success");
+    } catch (err) {
+      console.error('Error submitting form:', err.response?.data || err.message);
+    }
+  };
 
-   const isDisabled = !email || !password;
+  return (
+    <div className="bg-gradient-to-r from-pink-200 to-purple-400 min-h-screen flex items-center justify-center px-4">
+      <div className="flex flex-col md:flex-row bg-white bg-opacity-20 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden max-w-4xl w-full">
+        
+        {/* Left Side Image */}
+        <div className="hidden md:block md:w-1/2">
+          <img
+            src="https://static.skillshare.com/uploads/parentClasses/fdabba10878e52a60ce32194bad23ccc/4a61784d"
+            alt="Login visual"
+            className="h-full w-full object-cover"
+          />
+        </div>
 
-   const handleSubmit = async (e) => {
-      e.preventDefault();
-      try {
-         const res = await axios.post("http://localhost:3000/auth/login",
-            { email, password });
-         console.log('Response:', res.data);
-         alert("Login Success");
+        {/* Right Side Form */}
+        <motion.div
+          className="w-full md:w-1/2 p-8 space-y-6"
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold text-center text-white">Welcome Back</h2>
 
-      } catch (err) {
-         console.error('Error submitting form:', err.response?.data || err.message);
-      }
-   }
-
-
-
-   return (
-      <div className="bg-gradient-to-r from-pink-200 to-purple-400 min-h-screen flex items-center justify-center">
-         <form
-            onSubmit={handleSubmit}
-            className="  space-y-4 bg-white bg-opacity-20 backdrop-blur-md p-8 rounded-lg shadow-lg w-full max-w-2xl mx-auto "
-         >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <Textinput
-               type='email'
-               label="Email"
-               value={email}
-               onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              label="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <Textinput
-               type='password'
-               label="Enter correct password"
-               value={password}
-               onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              label="Enter Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
-
-
 
             <button
-               disabled={isDisabled}
-               type="Login"
-               className={`w-full py-2 rounded transition 
-                     ${isDisabled ? 'bg-purple-300 text-white cursor-not-allowed'
-                     : 'bg-purple-500 text-white hover:bg-purple-400'}`}
+              type="submit"
+              disabled={isDisabled}
+              className={`w-full py-2 rounded transition font-semibold
+                ${isDisabled
+                  ? 'bg-purple-300 text-white cursor-not-allowed'
+                  : 'bg-purple-600 text-white hover:bg-purple-500'
+                }`}
             >
-               Login
+              Login
             </button>
+          </form>
 
-         </form>
+          <button
+            onClick={() => navigate('/beginRegister')}
+            className="w-full py-2 rounded bg-purple-700 text-white hover:bg-purple-600 transition"
+          >
+            Sign Up
+          </button>
+        </motion.div>
       </div>
-   );
+    </div>
+  );
 }
