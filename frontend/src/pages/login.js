@@ -23,21 +23,15 @@ export default function Login() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-pink-200 to-purple-400 min-h-screen flex items-center justify-center px-4">
-      <div className="flex flex-col md:flex-row bg-white bg-opacity-20 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden max-w-4xl w-full">
-        
+    <div className="bg-gradient-to-r from-purple-300 to-purple-500 min-h-screen flex items-center justify-center px-4">
+      <div className="flex flex-col md:flex-row bg-white bg-opacity-20 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden max-w-4xl w-full ">
+
         {/* Left Side Image */}
-        <div className="hidden md:block md:w-1/2">
-          <img
-            src="https://static.skillshare.com/uploads/parentClasses/fdabba10878e52a60ce32194bad23ccc/4a61784d"
-            alt="Login visual"
-            className="h-full w-full object-cover"
-          />
-        </div>
+       
 
         {/* Right Side Form */}
         <motion.div
-          className="w-full md:w-1/2 p-8 space-y-6"
+          className="w-full md:w-1/2 p-8 space-y-6 bg-purple-300"
           initial={{ x: 100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
@@ -65,7 +59,7 @@ export default function Login() {
               className={`w-full py-2 rounded transition font-semibold
                 ${isDisabled
                   ? 'bg-purple-300 text-white cursor-not-allowed'
-                  : 'bg-purple-600 text-white hover:bg-purple-500'
+                  : 'bg-purple-500 text-white hover:bg-purple-500'
                 }`}
             >
               Login
@@ -74,11 +68,19 @@ export default function Login() {
 
           <button
             onClick={() => navigate('/beginRegister')}
-            className="w-full py-2 rounded bg-purple-700 text-white hover:bg-purple-600 transition"
+            className="w-full py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition"
           >
             Sign Up
           </button>
         </motion.div>
+
+         <div className="hidden md:block md:w-1/2">
+          <img
+            src="https://ouch-prod-var-cdn.icons8.com/tv/illustrations/thumbs/nXIr3HsqDNFB0XDx.webp"
+            alt="Login visual"
+            className="h-full w-full object-cover"
+          />
+        </div>
       </div>
     </div>
   );
