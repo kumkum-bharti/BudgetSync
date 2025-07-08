@@ -12,10 +12,8 @@ const isLoggedIn=async(req,res,next)=>{
        const token=authHeader.split(' ')[1];
        
        const decoded=jwt.verify(token,process.env.secret);
-       console.log(decoded.id);
 
        const user=await User.findById(decoded.id);
-       console.log(user.name);
 
        if(!user || user.token!=token){
           return res.status(401).json({ message: "Invalid or expired token." });

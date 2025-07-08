@@ -1,19 +1,20 @@
-const User =require ('./User');
-const mongoose =require ("mongoose");
+const User = require('./User');
+const Purchase = require('./Purchases');
+const mongoose = require("mongoose");
 
-const expenseSchema=mongoose.Schema({
-    title:{
-        type:String,
-        required:true
+const expenseSchema = mongoose.Schema({
+    title: {
+        type: String,
+        required: true
     },
-    user:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:User,
-        required:true
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: User,
+        required: true
     },
-    expenseAmount:{
-        type:Number,
-        required:true
+    expenseAmount: {
+        type: Number,
+        required: true
     },
     category: {
         type: String,
@@ -25,15 +26,20 @@ const expenseSchema=mongoose.Schema({
         enum: ['Cash', 'Card', 'UPI', 'Bank Transfer', 'Other'],
         default: 'Other',
     },
-    GSTNumber:{
-        type:String,
-        required:true
+    GSTNumber: {
+        type: String,
+        required: true
     },
-    
-    BillNumber:{
-        type:String,
+
+    BillNumber: {
+        type: String,
+        required: true
+    },
+    purchaseId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: Purchase,
         required:true
     }
-},{timestamps:true});
+}, { timestamps: true });
 
-module.exports=mongoose.model('Expense',expenseSchema);
+module.exports = mongoose.model('Expense', expenseSchema);
