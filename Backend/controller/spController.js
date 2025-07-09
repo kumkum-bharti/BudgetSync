@@ -4,41 +4,54 @@ const splitPurchase = require('../models/sp');
 const Purchase = require('../models/Purchases');
 
 
+function isValidGST(gstin) {
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    return gstRegex.test(gstin);
+}
+
 const addExpense = async (req, res) => {
     try {
         const { title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId } = req.body;
 
-        if (!title || !expenseAmount || !user || !GSTNumber || !BillNumber || ! purchaseId) {
+        if (!title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
             return res.status(400).json({ message: "Please fill the required fields" });
         }
+
 
         const person = await User.findById(user);
         if (!person) {
             return res.status(404).json({ message: "Invalid User" });
         }
 
-        
+
         const purchase = await Purchase.findById(purchaseId);
         if (!purchase) {
             return res.status(404).json({ message: "Invalid Purchase" });
         }
 
-        if(user!=purchase.userID){
+        if (user != purchase.userID) {
             return res.status(404).json({ message: "Invalid Purchase" });
         }
 
-        if(expenseAmount>purchase.restAmount){
-                 return res.status(400).json({ message: "Invalid amount" });
+        if (expenseAmount > purchase.restAmount) {
+            return res.status(400).json({ message: "Invalid amount" });
         }
 
-        purchase.restAmount-=expenseAmount;
 
-        const restAmount=expenseAmount;
-        const newExpense = new Expense({ title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber,purchaseId,restAmount });
+        const isValid = isValidGST(GSTNumber);
+        if (!isValid) {
+            return res.status(404).json({ message: "Invalid gst number" });
+        }
+
+
+        purchase.restAmount -= expenseAmount;
+
+        const restAmount = expenseAmount;
+        const newExpense = new Expense({ title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId, restAmount });
         await newExpense.save();
-        
 
-        
+
+
         purchase.expensesList.push(newExpense._id);
         await purchase.save();
 
@@ -50,15 +63,18 @@ const addExpense = async (req, res) => {
 
 }
 
+
+
+
 const addSplitPurchase = async (req, res) => {
     try {
         const { name, admin, amount, members } = req.body;
         if (!name || !admin || !amount || !members) {
             return res.status(400).json({ message: "All Fields are required" });
         }
-        
-        const restAmount=amount;
-        const newsp = new splitPurchase({ name,admin,amount,members,restAmount });
+
+        const restAmount = amount;
+        const newsp = new splitPurchase({ name, admin, amount, members, restAmount });
         await newsp.save();
 
         return res.status(201).json({ message: "SplitPurchase added", splitPurchase: newsp._id })
@@ -72,9 +88,9 @@ const addSplitPurchase = async (req, res) => {
 
 const addPurchase = async (req, res) => {
     try {
-        const { userID, amount,splitPurchaseId } = req.body;
+        const { userID, amount, splitPurchaseId } = req.body;
 
-        if (!userID || !amount ||!splitPurchaseId) {
+        if (!userID || !amount || !splitPurchaseId) {
             return res.status(400).json({ message: "Please fill the required fields" });
         }
 
@@ -87,15 +103,19 @@ const addPurchase = async (req, res) => {
         if (!sp) {
             return res.status(404).json({ message: "Invalid splitPurchase" });
         }
-        
-        if(amount>sp.restAmount){
-              return res.status(400).json({ message: "Invalid amount" });
-        }
-        
-        sp.restAmount-=amount;
 
-        const restAmount=amount;
-        const newPurchase = new Purchase({ userID, amount,splitPurchaseId,restAmount });
+        if (req._id != sp.admin) {
+            return res.status(404).json({ message: "Only admin is alowed to add a purchase" });
+        }
+
+        if (amount > sp.restAmount) {
+            return res.status(400).json({ message: "Invalid amount" });
+        }
+
+        sp.restAmount -= amount;
+
+        const restAmount = amount;
+        const newPurchase = new Purchase({ userID, amount, splitPurchaseId, restAmount });
         await newPurchase.save();
 
         sp.purchases.push(newPurchase._id);
