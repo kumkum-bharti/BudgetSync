@@ -1,15 +1,12 @@
 const User = require('./User');
 const Purchase = require('./Purchases');
+const Expense = require('./Expenses');
+
 const mongoose = require("mongoose");
 
-const expenseSchema = mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
+const requestSchema = mongoose.Schema({
     title: {
         type: String,
-        required: true
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -17,8 +14,7 @@ const expenseSchema = mongoose.Schema({
         required: true
     },
     expenseAmount: {
-        type: Number,
-        required: true
+        type: Number
     },
     category: {
         type: String,
@@ -30,20 +26,32 @@ const expenseSchema = mongoose.Schema({
         enum: ['Cash', 'Card', 'UPI', 'Bank Transfer', 'Other'],
         default: 'Other',
     },
+    status:{
+        type:String,
+        enum: ['Pending' ,'Accepted','Denied'],
+        default:'Pending'
+    },
+    reason:{
+        type:String,
+        required:true
+    },
     GSTNumber: {
-        type: String,
-        required: true
+        type: String
     },
 
     BillNumber: {
-        type: String,
-        required: true
+        type: String
     },
     purchaseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: Purchase,
         required:true
+    },
+    expenseId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: Expense,
+        required:true
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Expense', expenseSchema);
+module.exports = mongoose.model('Request', requestSchema);

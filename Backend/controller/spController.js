@@ -2,6 +2,7 @@ const Expense = require('../models/Expenses');
 const User = require('../models/User');
 const splitPurchase = require('../models/sp');
 const Purchase = require('../models/Purchases');
+const Request = require('../models/request');
 
 
 function isValidGST(gstin) {
@@ -11,9 +12,9 @@ function isValidGST(gstin) {
 
 const addExpense = async (req, res) => {
     try {
-        const { title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId } = req.body;
+        const { name,title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId } = req.body;
 
-        if (!title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
+        if (!name || !title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
             return res.status(400).json({ message: "Please fill the required fields" });
         }
 
@@ -33,6 +34,10 @@ const addExpense = async (req, res) => {
             return res.status(404).json({ message: "Invalid Purchase" });
         }
 
+        if(user.name!=name){
+             return res.status(400).json({ message: "Bill owner name is not same as the user" });
+        }
+
         if (expenseAmount > purchase.restAmount) {
             return res.status(400).json({ message: "Invalid amount" });
         }
@@ -40,14 +45,14 @@ const addExpense = async (req, res) => {
 
         const isValid = isValidGST(GSTNumber);
         if (!isValid) {
-            return res.status(404).json({ message: "Invalid gst number" });
+            return res.status(400).json({ message: "Invalid gst number" });
         }
 
 
         purchase.restAmount -= expenseAmount;
 
         const restAmount = expenseAmount;
-        const newExpense = new Expense({ title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId, restAmount });
+        const newExpense = new Expense({ name,title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId, restAmount });
         await newExpense.save();
 
 
@@ -63,7 +68,110 @@ const addExpense = async (req, res) => {
 
 }
 
+const editRequest=async(req,res) => {
+    try{
+        const { expenseId, title, expenseAmount, category, paymentMode, GSTNumber, BillNumber, purchaseId,reason }=req.body;
 
+        const person = await User.findById(user);
+        if (!person) {
+            return res.status(404).json({ message: "Invalid User" });
+        }
+
+
+        const purchase = await Purchase.findById(purchaseId);
+        if (!purchase) {
+            return res.status(404).json({ message: "Invalid Purchase" });
+        }
+
+        if (req._id != purchase.userID) {
+            return res.status(404).json({ message: "Invalid Purchase" });
+        }
+        
+        const expense = await Expense.findById(expenseId);
+        if (!expense) {
+            return res.status(404).json({ message: "Invalid Expense" });
+        }
+
+        if (req._id != expense.user) {
+            return res.status(404).json({ message: "Invalid acecess! the expense was not added by you" });
+        }
+
+
+        const newreq = new Request({ title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId,expenseId,reason });
+        await newreq.save();
+
+        return res.status(201).json({ message: "Edit request submitted" });
+
+    }   
+    catch (err) {
+        return res.status(500).json({ message: "Error generating expense request", error: err.message });
+    }
+}
+
+const reviewRequest=async(req,res)=>{
+     try{
+        const { requestId,status}=req.body;
+
+        const request = await Request.findById(requestId);
+        if (!request) {
+            return res.status(404).json({ message: "Invalid Request" });
+        }
+        
+        const purchase = await Purchase.findById(request.purchaseId);
+        if (!purchase) {
+            return res.status(404).json({ message: "Invalid Purchase" });
+        }
+
+        const sp = await splitPurchase.findById(purchase.splitPurchaseId);
+        if (!sp) {
+            return res.status(404).json({ message: "Invalid" });
+        }
+        
+        if(sp.admin!=req._id){
+             return res.status(400).json({ message: "Only admin can accept or deny the req" });
+        }
+
+        if(status=='Accepted'){
+            const expense=await Expense.findById(request.expenseId);
+            purchase.restAmount+=expense.expenseAmount;
+            expense.title= request.title;
+            expense.expenseAmount= request.expenseAmount;
+            expense.user= request.user;
+            expense.category=request.category;
+            expense.paymentMode= request.paymentMode;
+            expense.GSTNumber=request.GSTNumber;
+            expense.BillNumber=request.BillNumber;
+            expense.purchaseId=request.purchaseId;
+
+        if (request.expenseAmount > purchase.restAmount) {
+            return res.status(400).json({ message: "Invalid amount" });
+        }
+
+
+        const isValid = isValidGST(GSTNumber);
+        if (!isValid) {
+            return res.status(400).json({ message: "Invalid gst number" });
+        }
+
+        
+        purchase.restAmount -= request.expenseAmount;
+        await expense.save();
+
+        }
+        else{
+            Request.findByIdAndDelete(requestId);
+        }
+        
+     }
+     catch (err) {
+        return res.status(500).json({ message: "Error reviewing expense request", error: err.message });
+    }
+
+}
+
+// const getRequests=async(req,res)=>{
+     
+// }
 
 
 const addSplitPurchase = async (req, res) => {
@@ -129,4 +237,4 @@ const addPurchase = async (req, res) => {
 
 }
 
-module.exports = { addExpense, addSplitPurchase, addPurchase };
+module.exports = { addExpense, addSplitPurchase, addPurchase,editRequest,reviewRequest };
