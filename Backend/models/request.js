@@ -5,6 +5,10 @@ const Expense = require('./Expenses');
 const mongoose = require("mongoose");
 
 const requestSchema = mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
     title: {
         type: String,
     },
@@ -26,14 +30,14 @@ const requestSchema = mongoose.Schema({
         enum: ['Cash', 'Card', 'UPI', 'Bank Transfer', 'Other'],
         default: 'Other',
     },
-    status:{
-        type:String,
-        enum: ['Pending' ,'Accepted','Denied'],
-        default:'Pending'
+    status: {
+        type: String,
+        enum: ['Pending', 'Accepted', 'Denied'],
+        default: 'Pending'
     },
-    reason:{
-        type:String,
-        required:true
+    reason: {
+        type: String,
+        required: true
     },
     GSTNumber: {
         type: String
@@ -42,15 +46,10 @@ const requestSchema = mongoose.Schema({
     BillNumber: {
         type: String
     },
-    purchaseId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: Purchase,
-        required:true
-    },
-    expenseId:{
+    expenseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: Expense,
-        required:true
+        required: true
     }
 }, { timestamps: true });
 
