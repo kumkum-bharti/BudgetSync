@@ -1,14 +1,13 @@
 const mongoose = require('mongoose');
-const User =require ('./User.js');
-const Expense =require  ('./Expenses.js');
-const splitPurchase=require  ('./sp.js');
+
 
 const purchaseSchema = mongoose.Schema({
   userID: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: User,
+    ref: "User",
     required: true
   },
+
   amount: {
     type: Number,
     required: true
@@ -16,15 +15,16 @@ const purchaseSchema = mongoose.Schema({
   restAmount: {
     type: Number
   },
+
   expensesList: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: Expense,
+    ref: "Expense",
     default:[]
   }],
 
   splitPurchaseId:{
     type: mongoose.Schema.Types.ObjectId,
-    ref: splitPurchase ,
+    ref: "splitPurchase" ,
     required: true
   },
   verified: {
@@ -34,4 +34,4 @@ const purchaseSchema = mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('Purchase', purchaseSchema);
+module.exports = mongoose.model("Purchase", purchaseSchema);

@@ -1,7 +1,4 @@
 const mongoose = require('mongoose');
-const User = require('./User.js');
-const Purchase = require('./Purchases.js');
-
 
 const spSchema = mongoose.Schema({
     name: {
@@ -10,7 +7,7 @@ const spSchema = mongoose.Schema({
     },
     admin: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: User,
+        ref: "User",
         required: true
     },
     amount: {
@@ -22,15 +19,15 @@ const spSchema = mongoose.Schema({
     },
     members: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: User,
+        ref: "User",
         required: true
     }],
     purchases: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: Purchase,
+        ref: "Purchase",
         default: []
     }],
 
 });
 
-module.exports = mongoose.model('splitPurchase', spSchema);
+module.exports = mongoose.model("splitPurchase", spSchema);

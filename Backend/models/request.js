@@ -1,7 +1,3 @@
-const User = require('./User');
-const Purchase = require('./Purchases');
-const Expense = require('./Expenses');
-
 const mongoose = require("mongoose");
 
 const requestSchema = mongoose.Schema({
@@ -14,7 +10,7 @@ const requestSchema = mongoose.Schema({
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: User,
+        ref: "User",
         required: true
     },
     expenseAmount: {
@@ -48,7 +44,7 @@ const requestSchema = mongoose.Schema({
     },
     expenseId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: Expense,
+        ref: "Expense",
         required: true
     }
 }, { timestamps: true });

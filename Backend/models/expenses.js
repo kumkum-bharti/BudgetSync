@@ -1,5 +1,3 @@
-const User = require('./User');
-const Purchase = require('./Purchases');
 const mongoose = require("mongoose");
 
 const expenseSchema = mongoose.Schema({
@@ -13,7 +11,7 @@ const expenseSchema = mongoose.Schema({
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: User,
+        ref: "User",
         required: true
     },
     expenseAmount: {
@@ -41,9 +39,9 @@ const expenseSchema = mongoose.Schema({
     },
     purchaseId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: Purchase,
-        required:true
+        ref: "Purchase",
+        required: true
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Expense', expenseSchema);
+module.exports = mongoose.model("Expense", expenseSchema);
