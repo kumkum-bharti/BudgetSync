@@ -16,14 +16,14 @@ export default function Login() {
     try {
       const res = await axios.post("http://localhost:3000/auth/login", { email, password });
       console.log('Response:', res.data);
-      alert("Login Success");
+      navigate('/start');
     } catch (err) {
       console.error('Error submitting form:', err.response?.data || err.message);
     }
   };
 
   return (
-    <div className="bg-gradient-to-r from-purple-300 to-purple-500 min-h-screen flex items-center justify-center px-4">
+    <div className="bg-gradient-to-r from-purple-100 to-purple-400 min-h-screen flex items-center justify-center px-4">
       <div className="flex flex-col md:flex-row bg-white bg-opacity-20 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden max-w-4xl w-full ">
 
         {/* Left Side Image */}
