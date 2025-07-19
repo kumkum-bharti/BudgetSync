@@ -13,25 +13,28 @@ function isValidGST(gstin) {
 const addExpense = async (req, res) => {
     try {
         const { name, title, expenseAmount, category, paymentMode, GSTNumber, BillNumber, purchaseId } = req.body;
+     
+        const user = req._id;      
 
+        // if (!name || !title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
+        //     return res.status(400).json({ message: "Please fill the required fields" });
+        // }
 
-        const user = req._id;
-
-        if (!name || !title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
-            return res.status(400).json({ message: "Please fill the required fields" });
-        }
-
-
+        
+        console.log("jdbh");
         const person = await User.findById(user);
         if (!person) {
             return res.status(404).json({ message: "Invalid User" });
         }
 
+       
 
         const purchase = await Purchase.findById(purchaseId);
         if (!purchase) {
             return res.status(404).json({ message: "Invalid Purchase" });
         }
+
+       
 
         if (user != purchase.userID) {
             return res.status(404).json({ message: "Invalid Purchase" });
@@ -51,6 +54,8 @@ const addExpense = async (req, res) => {
             return res.status(400).json({ message: "Invalid gst number" });
         }
 
+            
+        
 
         purchase.restAmount -= expenseAmount;
 
@@ -73,7 +78,8 @@ const addExpense = async (req, res) => {
 
 const addSplitPurchase = async (req, res) => {
     try {
-        const { name, admin, amount, members } = req.body;
+        const { name, amount, members } = req.body;
+        const admin=req._id;
         if (!name || !admin || !amount || !members) {
             return res.status(400).json({ message: "All Fields are required" });
         }
@@ -123,7 +129,7 @@ const addPurchase = async (req, res) => {
         const newPurchase = new Purchase({ userID, amount, splitPurchaseId, restAmount });
         await newPurchase.save();
 
-        sp.purchases.push(newPurchase._id);
+        await sp.purchases.push(newPurchase._id);
         await sp.save();
 
         return res.status(201).json({ message: "Purchase added", Purchase: newPurchase._id })

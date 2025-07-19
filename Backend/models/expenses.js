@@ -26,7 +26,7 @@ const expenseSchema = mongoose.Schema({
     paymentMode: {
         type: String,
         enum: ['Cash', 'Card', 'UPI', 'Bank Transfer', 'Other'],
-        default: 'Other',
+        default: 'Cash',
     },
     GSTNumber: {
         type: String,

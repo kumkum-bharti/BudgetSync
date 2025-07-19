@@ -1,5 +1,10 @@
+import { useNavigate } from 'react-router-dom';
+
+
 
 export default function Start() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
       <div className="max-w-4xl w-full text-center">
@@ -56,6 +61,7 @@ export default function Start() {
           </div>
         </div>
       </div>
+      <button onClick= {()=>navigate('/ocr')}>ocr</button>
     </div>
   );
 }

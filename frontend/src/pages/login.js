@@ -14,7 +14,10 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3000/auth/login", { email, password });
+      const res = await axios.post("http://localhost:3000/auth/login", { email, password }, {
+        withCredentials: true
+      });
+
       console.log('Response:', res.data);
       navigate('/start');
     } catch (err) {
@@ -27,7 +30,7 @@ export default function Login() {
       <div className="flex flex-col md:flex-row bg-white bg-opacity-20 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden max-w-4xl w-full ">
 
         {/* Left Side Image */}
-       
+
 
         {/* Right Side Form */}
         <motion.div
@@ -74,7 +77,7 @@ export default function Login() {
           </button>
         </motion.div>
 
-         <div className="hidden md:block md:w-1/2">
+        <div className="hidden md:block md:w-1/2">
           <img
             src="https://ouch-prod-var-cdn.icons8.com/tv/illustrations/thumbs/nXIr3HsqDNFB0XDx.webp"
             alt="Login visual"
