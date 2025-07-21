@@ -26,38 +26,35 @@ const addExpense = async (req, res) => {
         if (!person) {
             return res.status(404).json({ message: "Invalid User" });
         }
-        
-        console.log(person);
-        console.log(purchaseId);
+
+       
+        console.log("purchaseId received:", purchaseId);
         console.log("Length:", purchaseId.length);
-        const cleanedId = purchaseId.trim().slice(0, 24);
-        console.log("Length:", cleanedId.length);
+        // console.log("IsValidHex24:", /^[a-fA-F0-9]{24}$/.test(purchaseId));
+
+        // const cleanedId = purchaseId.trim().slice(0, 24);
+        // console.log("Length:", cleanedId.length);
 
 
 
 
-        if (!mongoose.Types.ObjectId.isValid(cleanedId)) {
-            return res.status(400).json({ message: "Invalid ObjectId format" });
-        }
+        // if (!mongoose.Types.ObjectId.isValid(cleanedId)) {
+        //     return res.status(400).json({ message: "Invalid ObjectId format" });
+        // }
 
-        const purchase = await Purchase.findById(cleanedId);
-        console.log(purchase);
-        // const purchase = await Purchase.findOne({ _id: new mongoose.Types.ObjectId(cleanedId) });
-        // console.log(purchase);
-   
-
-        if (!purchase) {
+        const purchase = await Purchase.findById(purchaseId);
+          if (!purchase) {
             return res.status(404).json({ message: "Invalid Purchase" });
         }
 
 
-        // if (user != purchase.userID) {
-        //     return res.status(404).json({ message: "Invalid Purchase" });
-        // }
+        if (user != purchase.userID) {
+            return res.status(404).json({ message: "Invalid Purchase" });
+        }
 
         if (String(user) !== String(purchase.userID)) {
-    return res.status(403).json({ message: "Unauthorized: Purchase doesn't belong to user" });
-}
+            return res.status(403).json({ message: "Unauthorized: Purchase doesn't belong to user" });
+        }
 
         console.log("vgv");
 
@@ -69,7 +66,7 @@ const addExpense = async (req, res) => {
             return res.status(400).json({ message: "Invalid amount" });
         }
 
-
+        console.log(GSTNumber);
         const isValid = isValidGST(GSTNumber);
         if (!isValid) {
             return res.status(400).json({ message: "Invalid gst number" });
