@@ -1,9 +1,9 @@
 const Expense = require('../models/Expenses');
 const User = require('../models/User');
 const splitPurchase = require('../models/sp');
-const Purchase = require('../models/Purchases');
+const Purchase = require('../models/Purchase');
 const Request = require('../models/request');
-
+const mongoose = require("mongoose");
 
 function isValidGST(gstin) {
     const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -13,32 +13,53 @@ function isValidGST(gstin) {
 const addExpense = async (req, res) => {
     try {
         const { name, title, expenseAmount, category, paymentMode, GSTNumber, BillNumber, purchaseId } = req.body;
-     
-        const user = req._id;      
 
-        // if (!name || !title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
-        //     return res.status(400).json({ message: "Please fill the required fields" });
-        // }
+        const user = req._id;
 
-        
-        console.log("jdbh");
+
+        if (!name || !title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
+            return res.status(400).json({ message: "Please fill the required fields" });
+        }
+
+
         const person = await User.findById(user);
         if (!person) {
             return res.status(404).json({ message: "Invalid User" });
         }
+        
+        console.log(person);
+        console.log(purchaseId);
+        console.log("Length:", purchaseId.length);
+        const cleanedId = purchaseId.trim().slice(0, 24);
+        console.log("Length:", cleanedId.length);
 
-       
 
-        const purchase = await Purchase.findById(purchaseId);
+
+
+        if (!mongoose.Types.ObjectId.isValid(cleanedId)) {
+            return res.status(400).json({ message: "Invalid ObjectId format" });
+        }
+
+        const purchase = await Purchase.findById(cleanedId);
+        console.log(purchase);
+        // const purchase = await Purchase.findOne({ _id: new mongoose.Types.ObjectId(cleanedId) });
+        // console.log(purchase);
+   
+
         if (!purchase) {
             return res.status(404).json({ message: "Invalid Purchase" });
         }
 
-       
 
-        if (user != purchase.userID) {
-            return res.status(404).json({ message: "Invalid Purchase" });
-        }
+        // if (user != purchase.userID) {
+        //     return res.status(404).json({ message: "Invalid Purchase" });
+        // }
+
+        if (String(user) !== String(purchase.userID)) {
+    return res.status(403).json({ message: "Unauthorized: Purchase doesn't belong to user" });
+}
+
+        console.log("vgv");
 
         if (person.name.toLowerCase() != name.toLowerCase()) {
             return res.status(400).json({ message: "Bill owner name is not same as the user" });
@@ -54,8 +75,8 @@ const addExpense = async (req, res) => {
             return res.status(400).json({ message: "Invalid gst number" });
         }
 
-            
-        
+
+
 
         purchase.restAmount -= expenseAmount;
 
@@ -79,7 +100,7 @@ const addExpense = async (req, res) => {
 const addSplitPurchase = async (req, res) => {
     try {
         const { name, amount, members } = req.body;
-        const admin=req._id;
+        const admin = req._id;
         if (!name || !admin || !amount || !members) {
             return res.status(400).json({ message: "All Fields are required" });
         }
@@ -484,4 +505,4 @@ const deleteSp = async (req, res) => {
 }
 
 
-module.exports = { addExpense, addSplitPurchase, addPurchase, editRequest, reviewRequest, getRequests, getExpenses, getPurchases, getSp, editSp, deletePurchase,deleteSp };
+module.exports = { addExpense, addSplitPurchase, addPurchase, editRequest, reviewRequest, getRequests, getExpenses, getPurchases, getSp, editSp, deletePurchase, deleteSp };
