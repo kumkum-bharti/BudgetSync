@@ -77,9 +77,14 @@ const login=async(req,res)=>{
         if(!token){
             return res.status(500).json({message:"Error generating token"});
         }
+
+
+        res.cookie('token', token, {
+        httpOnly: true,
+        secure: false, 
+        sameSite: 'Lax'
+        })
        
-        user.token=token;
-        await user.save();
 
 
         res.status(200).json({messgae:"Login Successfull",token:token, 

@@ -1,13 +1,12 @@
 const mongoose = require("mongoose");
 
-const expenseSchema = mongoose.Schema({
+const requestSchema = mongoose.Schema({
     name: {
         type: String,
         required: true
     },
     title: {
         type: String,
-        required: true
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -15,8 +14,7 @@ const expenseSchema = mongoose.Schema({
         required: true
     },
     expenseAmount: {
-        type: Number,
-        required: true
+        type: Number
     },
     category: {
         type: String,
@@ -26,22 +24,29 @@ const expenseSchema = mongoose.Schema({
     paymentMode: {
         type: String,
         enum: ['Cash', 'Card', 'UPI', 'Bank Transfer', 'Other'],
-        default: 'Cash',
+        default: 'Other',
     },
-    GSTNumber: {
+    status: {
+        type: String,
+        enum: ['Pending', 'Accepted', 'Denied'],
+        default: 'Pending'
+    },
+    reason: {
         type: String,
         required: true
+    },
+    GSTNumber: {
+        type: String
     },
 
     BillNumber: {
-        type: String,
-        required: true
+        type: String
     },
-    purchaseId: {
+    expenseId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Purchase",
+        ref: "Expense",
         required: true
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model("Expense", expenseSchema);
+module.exports = mongoose.model('Request', requestSchema);
