@@ -67,7 +67,9 @@ function parseBillText(text) {
 
 function ExpenseForm({ ocrData }) {
   const navigate = useNavigate();
-  const rawpurchaseId="687b895ffd3e12c36348abdb";
+  const rawpurchaseId = "687b895ffd3e12c36348abdb".trim();
+  console.log("purchaseId Length:", rawpurchaseId.length);  
+
   const [formData, setFormData] = useState({
     ...ocrData,
     category: 'Other',
@@ -87,9 +89,10 @@ function ExpenseForm({ ocrData }) {
     if (isFakeBill) return alert("This bill seems fake. Missing required fields.");
 
     try {
+      console.log("Sending purchaseId:", formData.purchaseId);
       await axios.post("http://localhost:3000/sp/addExpense", formData, { withCredentials: true });
       alert("Expense successfully added!");
-      navigate('start');
+      navigate('/start');
     } catch (error) {
       console.error(error.response.data);
       alert("Error submitting expense.");

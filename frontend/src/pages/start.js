@@ -60,8 +60,20 @@ export default function Start() {
             <p className="text-gray-500 text-sm mt-1">Set limits, get alerts, and stay on track.</p>
           </div>
         </div>
-      </div>
-      <button onClick= {()=>navigate('/ocr')}>ocr</button>
+        <div className=" flex items-center justify-center mt-5">
+            <button className="flex items-center gap-2 bg-purple-600 text-white text-lg px-10 py-2 rounded-md shadow-md hover:bg-purple-700 transition" onClick= {()=>navigate('/sp')}>Get Started
+             <svg
+                    className="w-6 h-6 "
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+        </div>
+      </div >
     </div>
   );
 }

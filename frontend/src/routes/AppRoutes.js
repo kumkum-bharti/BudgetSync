@@ -5,6 +5,7 @@ import Login from "../pages/login";
 import Home from "../pages/home"
 import Start from "../pages/start"
 import OCR from "../pages/ocr"
+import SplitPurchase from "../pages/splitPurchase"
 
 const AppRoutes = () => {
     return (
@@ -15,6 +16,7 @@ const AppRoutes = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/start" element={<Start />} />
             <Route path="/ocr" element={<OCR />} />
+            <Route path="/sp" element={<SplitPurchase />} />
 
         </Routes>
     );

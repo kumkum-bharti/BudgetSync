@@ -394,7 +394,7 @@ const getPurchases = async (req, res) => {
 const getSp = async (req, res) => {
     try {
         const spAdmin = await splitPurchase.find({ admin: req._id }).sort({ createdAt: -1 });
-        const spMember = await splitPurchase.find({ members: { $in: [req._id] } }).sort({ createdAt: -1 });
+        const spMember = await splitPurchase.find({ members: { $in: [req._id] } }).populate("admin").sort({ createdAt: -1 });
 
         if (spAdmin.length === 0 && spMember.length === 0) {
             return res.status(400).json({ message: "You have not any splitPurchase group" });
