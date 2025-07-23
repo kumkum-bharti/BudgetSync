@@ -5,6 +5,10 @@ import axios from 'axios';
 const SplitPurchase = () => {
   const[spAdmin,setspAdmin]=useState([]);
   const[spMember,setspMember]=useState([]);
+  const[spName,setSpName]=useState();
+  const[amount,setAmount]=useState();
+  const[members,setMembers]=useState([]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -15,6 +19,12 @@ const SplitPurchase = () => {
         console.log("Response:", res.data);
         setspAdmin(res.data.spAdmin);
         setspMember(res.data.SPmember);
+
+        const res2=await axios.get("http://localhost:3000/auth/getUsers", {
+          withCredentials: true,
+        });
+        console.log("Response2:", res2.data);
+        setMembers(res2.data.users);
         
       } catch (err) {
         console.error("Error fetching split purchase:", err.response?.data || err.message);
@@ -24,14 +34,23 @@ const SplitPurchase = () => {
     fetchData();
   }, []);
 
-    useEffect(() => {
-    console.log("Updated spAdmin:", spAdmin);
-    console.log("Updated spMember:", spMember);
-  }, [spAdmin, spMember]);
+ 
+
+  
+
+  const handleSubmit=async(res,req)=>{
+     try{
+       const res=await axios.post("http://localhost:3000/sp/addSp",{withCredentials:true},{spName,amount,members});
+       console.log("Response:", res.data);
+     }
+     catch(err){
+          console.error("Error fetching split purchase:", err.response?.data || err.message);
+     }
+  }
 
   return (
-  <div className="w-full flex justify-center bg-gray-50 min-h-screen">
-    <div className="w-3/4 p-6">
+  <div className="w-full flex justfy-center bg-gray-50 min-h-screen">
+    <div className="w-3/4 p-6 bg-gray-300">
       <h1 className="text-3xl font-bold mb-10 text-center text-purple-800">Split Purchase</h1>
 
       {/* Admin Groups */}
@@ -85,6 +104,47 @@ const SplitPurchase = () => {
           You are not part of any split purchase group.
         </div>
       )}
+    </div>
+    <div className="w-1/4" >
+        <h2 className="text-center text-xl mt-5 font-bold text-blue-300  ">CREATE YOUR OWN GROUP</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          value={spName}
+          onChange={(e) => setSpName(e.target.value)}
+          placeholder="Group Name"
+          className="w-full p-2 border rounded-md"
+          required
+        />
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Total Amount"
+          className="w-full p-2 border rounded-md"
+          required
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         {members.map((member) => (
+              <div
+                key={member._id}
+                className="bg-white rounded-xl p-5 shadow-lg border hover:shadow-2xl transition-all duration-300"
+              >
+                <h3 className="text-lg font-semibold text-indigo-600 mb-2">{member.name}</h3>
+              </div>
+            ))}
+           </div> 
+         
+
+        <button
+          type="submit"
+          className="w-full bg-purple-700 text-white font-semibold py-2 rounded-md hover:bg-purple-800 transition"
+        >
+          Create Group
+        </button>
+      </form>
     </div>
   </div>
 );
