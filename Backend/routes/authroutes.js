@@ -1,4 +1,4 @@
-const {beginRegister,register,verify,login,getUsers} = require('../controller/authController');
+const {beginRegister,register,verify,login,getUsers,searchUsers} = require('../controller/authController');
 const express = require('express');
 const isLoggedIn=require('../middleware/isLoggedIn')
 
@@ -9,6 +9,7 @@ router.post('/register',register);
 router.post('/verify',verify)
 router.post('/login',login)
 router.post('/check',isLoggedIn);
-router.get('/getUsers',getUsers)
+router.get('/getUsers',isLoggedIn,getUsers);
+router.get('/searchUsers/',isLoggedIn,searchUsers)
 
 module.exports = router;

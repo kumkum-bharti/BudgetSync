@@ -119,4 +119,23 @@ const getUsers=async(req,res)=>{
 
 }
 
-module.exports= {beginRegister,register,verify,login,getUsers};
+
+const searchUsers = async (req, res) => {
+  try {
+    console.log("djdj");
+    const { name } = req.query;
+    if (!name) return res.status(400).json({ message: "Name query is required" });
+    
+   
+    const regex = new RegExp(name, "i"); 
+    const users = await User.find({ name: regex }).select("-password");
+   
+
+    return res.status(200).json({ users });
+  } catch (err) {
+    return res.status(500).json({ message: "Search failed", error: err.message });
+  }
+};
+
+
+module.exports= {beginRegister,register,verify,login,getUsers,searchUsers};

@@ -4,17 +4,15 @@ const jwt=require('jsonwebtoken');
 const isLoggedIn=async(req,res,next)=>{
     try{
        const token = req.cookies.token;
+
+       if (!token) {
+            return res.status(401).json({ message: "Token not provided." });
+        }
        
        const decoded=jwt.verify(token,process.env.secret);
        req._id = decoded.id;
 
        const user=await User.findById(decoded.id);
-
-       if(!token){
-          return res.status(401).json({ message: "Invalid or expired token." });
-       }
-
-       console.log("Cookies:", req.cookies);
 
        
        req.user=user;
