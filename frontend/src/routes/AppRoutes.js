@@ -6,6 +6,7 @@ import Home from "../pages/home"
 import Start from "../pages/start"
 import OCR from "../pages/ocr"
 import SplitPurchase from "../pages/splitPurchase"
+import GroupPurchase from "../pages/groupPurchase"
 
 const AppRoutes = () => {
     return (
@@ -17,6 +18,7 @@ const AppRoutes = () => {
             <Route path="/start" element={<Start />} />
             <Route path="/ocr" element={<OCR />} />
             <Route path="/sp" element={<SplitPurchase />} />
+            <Route path="/groupPurchase" element={<GroupPurchase />} />
 
         </Routes>
     );
