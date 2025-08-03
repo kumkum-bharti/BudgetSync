@@ -4,7 +4,7 @@ import Registerf from "../pages/registerf";
 import Login from "../pages/login";
 import Home from "../pages/home"
 import Start from "../pages/start"
-import OCR from "../pages/ocr"
+import OCR from "../pages/expense"
 import SplitPurchase from "../pages/splitPurchase"
 import GroupPurchase from "../pages/groupPurchase"
 
