@@ -12,7 +12,9 @@ export default function GroupPurchase() {
 
   const [purchases, setPurchases] = useState([]);
   const [restPurchases, setRestPurchases] = useState([]);
-
+  const [newPurchase, setNewPurchase] = useState('');
+  const [newPurchaseId, setNewPurchaseId] = useState('');
+  const [amount, setAmount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,36 +23,53 @@ export default function GroupPurchase() {
         setLoading(true);
         console.log("Sending spId:", sendSpId);
 
+        console.log("heyy")
         const res = await axios.get("http://localhost:3000/sp/getPurchases", {
           params: { spId: sendSpId },
           withCredentials: true,
         });
-        console.log("heyy")
         setPurchases(res.data);
-        console.log(res.data);
-
-
-
-
-      } catch (err) {
-        console.error("Error:", err.response?.data || err.message);
-      } finally {
+      }
+      catch (err) {
+        console.log("Error: No purchases made yet");
+      }
+      finally {
         setLoading(false);
-        const purchaseMembers = purchases.map(purchase => purchase.userId.toString());
-        setRestPurchases(members.filter(id => !(purchaseMembers.includes(id.toString()))));
-        console.log(members);
-        console.log(restPurchases);
+        const purchaseMembers = purchases.map(purchase => purchase.userID.toString());
+        if (purchaseMembers.length === 0) {
+          setRestPurchases(members);
+        }
+        else {
+          setRestPurchases(members.filter(member => !(purchaseMembers.includes(member._id.toString()))));
+        }
       }
     };
 
     if (sendSpId) {
       fetchData();
     }
-  }, [sendSpId]);
+  }, [members, sendSpId, purchases]);
 
   const handleSubmit = () => {
     navigate('/ocr')
   };
+
+  const addNewPurchase = async () => {
+    try {
+      console.log("hooo")
+      const res = await axios.post("http://localhost:3000/sp/addPurchase", { userID: newPurchaseId, amount: amount, splitPurchaseId: sendSpId }, { withCredentials: true });
+      console.log("Response:", res.data);
+      setPurchases(res.data);
+    }
+    catch (err) {
+      console.error("Error fetching split purchase:", err.response?.data || err.message);
+    }
+  }
+
+  const setNewPurchaseData = (restPurchase) => {
+    setNewPurchase(restPurchase.name)
+    setNewPurchaseId(restPurchase._id)
+  }
 
   return (
     <div className="w-full flex flex-col md:flex-row md:justify-center bg-gray-50 min-h-screen">
@@ -97,10 +116,56 @@ export default function GroupPurchase() {
 
       {/* RIGHT SIDEBAR (Form) */}
       <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
-        {restPurchases.map(p =>{
-          <div>p.name </div>
+        <h2 className="text-center text-lg sm:text-xl font-bold text-blue-500 mb-6">Add new purchase to the Group</h2>
 
-        })}
+        <form onSubmit={addNewPurchase} className="space-y-4">
+          <input
+            type="text"
+            value={newPurchase}
+            placeholder="Member Name"
+            className="w-full p-2 border rounded-md text-sm sm:text-base"
+            readOnly
+            required
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {restPurchases.length > 0 ?
+              restPurchases.map((restPurchase) => (
+                <div
+                  key={restPurchase._id}
+                  className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition mt-6"
+                  onClick={() => {
+                    setNewPurchaseData(restPurchase)
+                  }}
+                >
+                  <h3 className="text-lg font-semibold text-[#2F2F2F]">
+                    {restPurchase.name || "Unknown"}
+                  </h3>
+                </div>
+              )
+              ) : (
+                <p className="text-center text-gray-500 mt-6">No purchases left.</p>
+              )
+            }
+          </div>
+
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Total Amount"
+            className="w-full p-2 border rounded-md text-sm sm:text-base"
+            required
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-purple-700 text-white font-semibold py-2 rounded-md hover:bg-purple-800 transition text-sm sm:text-base"
+          >
+            Create Purchase
+          </button>
+        </form>
+
 
       </div>
     </div>
