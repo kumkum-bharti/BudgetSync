@@ -27,7 +27,7 @@ const addExpense = async (req, res) => {
             return res.status(404).json({ message: "Invalid User" });
         }
 
-       
+
         console.log("purchaseId received:", purchaseId);
         console.log("Length:", purchaseId.length);
         // console.log("IsValidHex24:", /^[a-fA-F0-9]{24}$/.test(purchaseId));
@@ -43,7 +43,7 @@ const addExpense = async (req, res) => {
         // }
 
         const purchase = await Purchase.findById(purchaseId);
-          if (!purchase) {
+        if (!purchase) {
             return res.status(404).json({ message: "Invalid Purchase" });
         }
 
@@ -150,7 +150,7 @@ const addPurchase = async (req, res) => {
         await sp.purchases.push(newPurchase._id);
         await sp.save();
 
-        return res.status(201).json({ message: "Purchase added", Purchase: newPurchase._id })
+        return res.status(201).json({ message: "Purchase added", Purchase: newPurchase })
     }
     catch (err) {
         return res.status(500).json({ message: "Error creating Purchase", error: err.message });
@@ -361,7 +361,7 @@ const getExpenses = async (req, res) => {
 
 const getPurchases = async (req, res) => {
     try {
-        const { spId } = req.body;
+        const { spId } = req.query;
 
         const sp = await splitPurchase.findById(spId).populate({
             path: "purchases",
@@ -370,10 +370,6 @@ const getPurchases = async (req, res) => {
                 model: "User"
             }
         });//this is how nested populating is done.
-
-        if (!sp.admin.equals(req._id)) {
-            return res.status(400).json({ message: "Invalid Access.Only Admins can access this." });
-        }
 
         const purchaseList = sp.purchases;
 
@@ -393,15 +389,18 @@ const getPurchases = async (req, res) => {
 
 const getSp = async (req, res) => {
     try {
-        const spAdmin = await splitPurchase.find({ admin: req._id }).sort({ createdAt: -1 });
-        const spMember = await splitPurchase.find({ members: { $in: [req._id] } }).populate("admin").sort({ createdAt: -1 });
+        const spAdmin = await splitPurchase.find({ admin: req._id }).populate("admin").populate("members").sort({ createdAt: -1 });
+        const spMember = await splitPurchase.find({ members: { $in: [req._id] } }).populate("admin").populate("members").sort({ createdAt: -1 });
 
         if (spAdmin.length === 0 && spMember.length === 0) {
             return res.status(400).json({ message: "You have not any splitPurchase group" });
         }
 
+        const adminIds = spAdmin.map(sp => sp._id.toString());
 
-        return res.status(200).json({ spAdmin: spAdmin, SPmember: spMember });
+        const filteredMember = spMember.filter(member => !adminIds.includes(member._id.toString()));
+
+        return res.status(200).json({ spAdmin: spAdmin, SPmember: filteredMember });
     }
     catch (err) {
         return res.status(500).json({ message: "Error fetching expenses", error: err.message });
