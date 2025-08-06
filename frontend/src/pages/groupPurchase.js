@@ -14,16 +14,14 @@ export default function GroupPurchase() {
   const [restPurchases, setRestPurchases] = useState([]);
   const [newPurchase, setNewPurchase] = useState('');
   const [newPurchaseId, setNewPurchaseId] = useState('');
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log("Sending spId:", sendSpId);
-
-        console.log("heyy")
+        
         const res = await axios.get("http://localhost:3000/sp/getPurchases", {
           params: { spId: sendSpId },
           withCredentials: true,
@@ -35,31 +33,35 @@ export default function GroupPurchase() {
       }
       finally {
         setLoading(false);
-        const purchaseMembers = purchases.map(purchase => purchase.userID.toString());
-        if (purchaseMembers.length === 0) {
-          setRestPurchases(members);
-        }
-        else {
-          setRestPurchases(members.filter(member => !(purchaseMembers.includes(member._id.toString()))));
-        }
       }
     };
 
     if (sendSpId) {
       fetchData();
     }
-  }, [members, sendSpId, purchases]);
+  }, [sendSpId]);
+
+  useEffect(() => {
+    const purchaseMembers = purchases.map(purchase => purchase.userID?._id?.toString());
+
+    const updatedRest = members.filter(member => {
+      const memberId = member._id?.toString();
+      return !purchaseMembers.includes(memberId);
+    });
+
+    setRestPurchases(updatedRest);
+  }, [purchases, members]);
 
   const handleSubmit = () => {
     navigate('/ocr')
   };
 
-  const addNewPurchase = async () => {
+  const addNewPurchase = async (e) => {
+    e.preventDefault();
     try {
-      console.log("hooo")
       const res = await axios.post("http://localhost:3000/sp/addPurchase", { userID: newPurchaseId, amount: amount, splitPurchaseId: sendSpId }, { withCredentials: true });
       console.log("Response:", res.data);
-      setPurchases(res.data);
+      setPurchases(prev => [...prev, res.data]);
     }
     catch (err) {
       console.error("Error fetching split purchase:", err.response?.data || err.message);
@@ -83,6 +85,7 @@ export default function GroupPurchase() {
         <h3>
           <h4>Admin:{sendSp.admin.name}</h4>
           <h4>Amount:{sendSp.amount}</h4>
+          <h4>Remaining Amount:{sendSp.restAmount}</h4>
         </h3>
 
         {loading && <p className="text-center text-gray-500">Loading purchases...</p>}
@@ -119,35 +122,24 @@ export default function GroupPurchase() {
         <h2 className="text-center text-lg sm:text-xl font-bold text-blue-500 mb-6">Add new purchase to the Group</h2>
 
         <form onSubmit={addNewPurchase} className="space-y-4">
-          <input
-            type="text"
-            value={newPurchase}
-            placeholder="Member Name"
-            className="w-full p-2 border rounded-md text-sm sm:text-base"
-            readOnly
-            required
-          />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {restPurchases.length > 0 ?
-              restPurchases.map((restPurchase) => (
-                <div
-                  key={restPurchase._id}
-                  className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition mt-6"
-                  onClick={() => {
-                    setNewPurchaseData(restPurchase)
-                  }}
-                >
-                  <h3 className="text-lg font-semibold text-[#2F2F2F]">
-                    {restPurchase.name || "Unknown"}
-                  </h3>
-                </div>
-              )
-              ) : (
-                <p className="text-center text-gray-500 mt-6">No purchases left.</p>
-              )
-            }
-          </div>
+          <select
+            value={newPurchaseId}
+            onChange={(e) => {
+              const selected = restPurchases.find(member => member._id === e.target.value);
+              setNewPurchaseData(selected);
+            }}
+            className="w-full p-2 border rounded-md text-sm sm:text-base"
+            required
+          >
+            <option value="">Select a member</option>
+            {restPurchases.map((member) => (
+              <option key={member._id} value={member._id}>
+                {member.name}
+              </option>
+            ))}
+          </select>
+
 
           <input
             type="number"

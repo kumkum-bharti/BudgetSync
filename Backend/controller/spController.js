@@ -118,7 +118,7 @@ const addSplitPurchase = async (req, res) => {
 const addPurchase = async (req, res) => {
     try {
         const { userID, amount, splitPurchaseId } = req.body;
-
+        
         if (!userID || !amount || !splitPurchaseId) {
             return res.status(400).json({ message: "Please fill the required fields" });
         }
