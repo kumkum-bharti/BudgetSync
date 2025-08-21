@@ -68,7 +68,7 @@ function parseBillText(text) {
 function ExpenseForm({ ocrData }) {
   const navigate = useNavigate();
   const rawpurchaseId = "687b895ffd3e12c36348abdb".trim();
-  console.log("purchaseId Length:", rawpurchaseId.length);  
+  console.log("purchaseId Length:", rawpurchaseId.length);
 
   const [formData, setFormData] = useState({
     ...ocrData,
@@ -193,40 +193,53 @@ export default function OCR() {
     }
   };
 
+  
+
   return (
-    <div className="min-h-screen bg-[#EEDEF6] text-[#2F2F2F] flex flex-col items-center px-6 py-12">
-      <h2 className="text-3xl font-bold mb-6 text-[#2F2F2F]">🧾 Bill OCR Extractor</h2>
-
-      <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-xl">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Upload Bill Image
-        </label>
-        <input
-          type="file"
-          onChange={handleImageUpload}
-          accept="image/*"
-          className="mb-4 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
-        />
-
-        <button
-          onClick={handleSubmit}
-          className="w-full bg-[#CCE5E3] hover:bg-[#aad2cf] text-[#2F2F2F] font-semibold py-2 px-4 rounded-lg transition"
-        >
-          Extract Data
-        </button>
-
-        {text && (
-          <pre className="mt-6 p-4 bg-[#FEE1B6] rounded-lg text-sm overflow-x-auto whitespace-pre-wrap">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        )}
+    <div className="w-full flex flex-col md:flex-row md:justify-center bg-gray-50 min-h-screen">
+      {/*left section*/}
+      <div className="w-full md:w-3/4 p-4 sm:p-6 bg-purple-100">
+       
       </div>
 
-      {data && (
-        <div className="w-full max-w-2xl mt-10">
-          <ExpenseForm ocrData={data} />
+      {/*right section*/}
+      <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
+        <div className="min-h-screen bg-[#EEDEF6] text-[#2F2F2F] flex flex-col items-center px-6 py-12">
+          <h2 className="text-3xl font-bold mb-6 text-[#2F2F2F]">🧾 Bill OCR Extractor</h2>
+
+          <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-xl">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload Bill Image
+            </label>
+            <input
+              type="file"
+              onChange={handleImageUpload}
+              accept="image/*"
+              className="mb-4 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+            />
+
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-[#CCE5E3] hover:bg-[#aad2cf] text-[#2F2F2F] font-semibold py-2 px-4 rounded-lg transition"
+            >
+              Extract Data
+            </button>
+
+            {text && (
+              <pre className="mt-6 p-4 bg-[#FEE1B6] rounded-lg text-sm overflow-x-auto whitespace-pre-wrap">
+                {JSON.stringify(data, null, 2)}
+              </pre>
+            )}
+          </div>
+
+          {data && (
+            <div className="w-full max-w-2xl mt-10">
+              <ExpenseForm ocrData={data} />
+            </div>
+          )}
         </div>
-      )}
+      </div>
+
     </div>
   );
 

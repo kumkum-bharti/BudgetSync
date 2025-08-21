@@ -13,6 +13,7 @@ const SplitPurchase = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearch, setSearched] = useState(false);
   const [loading, setLoading] = useState(true);
+  
   let debounceTimer;
   const navigate = useNavigate();
 
@@ -94,8 +95,8 @@ const SplitPurchase = () => {
   }, [selectedMembers, members]);
 
 
-  const handleGroup = (sp, spId) => {
-    navigate('/groupPurchase', { state: { spId, sp } });
+  const handleGroup = (sp, spId, role) => {
+    navigate('/groupPurchase', { state: { spId, sp, role } });
   };
 
 
@@ -118,7 +119,9 @@ const SplitPurchase = () => {
                 <div
                   key={group._id}
                   className="bg-white rounded-xl p-4 shadow-lg border hover:shadow-2xl transition-all duration-300"
-                  onClick={() => { handleGroup(group, group._id) }}
+                  onClick={() => {
+                    handleGroup(group, group._id, true)
+                  }}
                 >
                   <h3 className="text-base sm:text-lg font-semibold text-indigo-600 mb-1">{group.name}</h3>
                   <p className="text-sm text-gray-700">Admin: {group.admin.name}</p>
@@ -149,7 +152,7 @@ const SplitPurchase = () => {
                     <div
                       key={group._id}
                       className="bg-white rounded-xl p-4 shadow-lg border hover:shadow-2xl transition-all duration-300"
-                      onClick={() => { handleGroup(group, group._id) }}
+                      onClick={() => { handleGroup(group, group._id,false) }}
                     >
                       <h3 className="text-base sm:text-lg font-semibold text-emerald-600 mb-1">{group.name}</h3>
                       <p className="text-sm text-gray-700">Admin: {group.admin.name}</p>

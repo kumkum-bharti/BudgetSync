@@ -7,6 +7,7 @@ export default function GroupPurchase() {
   const navigate = useNavigate();
   const sendSpId = location.state?.spId;
   const sendSp = location.state?.sp;
+  const role=location.state?.role;
 
   const members = sendSp.members;
 
@@ -65,6 +66,7 @@ export default function GroupPurchase() {
     }
     catch (err) {
       console.error("Error fetching split purchase:", err.response?.data || err.message);
+      alert("Only admins are allowed to create new purchase")
     }
   }
 
@@ -118,6 +120,7 @@ export default function GroupPurchase() {
 
 
       {/* RIGHT SIDEBAR (Form) */}
+      {role?(
       <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
         <h2 className="text-center text-lg sm:text-xl font-bold text-blue-500 mb-6">Add new purchase to the Group</h2>
 
@@ -159,8 +162,14 @@ export default function GroupPurchase() {
         </form>
 
 
-      </div>
+      </div>):(
+        <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-purple-100">
+          </div>
+         
+      )
+     }
     </div>
+  
   );
 
 }
