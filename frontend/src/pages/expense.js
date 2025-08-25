@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect,useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -173,6 +173,28 @@ export default function OCR() {
   const [image, setImage] = useState(null);
   const [text, setText] = useState("");
   const [data, setData] = useState(null);
+  const [expenses,setExpenses]=useState([]);
+
+
+   useEffect(()=>{
+
+    const fetchexpenses=async()=>{
+      try{
+          const response=await axios.get("http://localhost:3000/sp/getExpenses",{
+              withCredentials:true,
+          });
+          
+          console.log(response.data.expenses);
+          setExpenses(response.data.expenses);
+      }
+      catch(err){
+        console.log("Error: Error getting purchase");
+      }
+    };
+
+    fetchexpenses();
+  },[]);
+
 
   const handleImageUpload = (e) => {
     setImage(e.target.files[0]);
@@ -198,9 +220,36 @@ export default function OCR() {
   return (
     <div className="w-full flex flex-col md:flex-row md:justify-center bg-gray-50 min-h-screen">
       {/*left section*/}
+
       <div className="w-full md:w-3/4 p-4 sm:p-6 bg-purple-100">
-       
-      </div>
+          <div className="w-full md:w-3/4 p-4 sm:p-6 bg-purple-100">
+          <h2 className="text-2xl font-bold mb-4 text-center text-purple-700">
+            Expenses
+          </h2>
+          </div>
+      
+      {expenses.length>0?
+        expenses.map((e,index)=>(
+          <div
+            key={index}
+            className="bg-white rounded-xl shadow-md p-4  hover:shadow-lg transition">
+            <h3 className="text-lg font-semibold text-[#2F2F2F]">
+                  {e.title || "Unknown"}
+            </h3>
+            <p className="text-sm text-gray-700 mt-1">
+                  Total Amount: ₹{e.expenseAmount}
+                </p>  
+             <p className="text-sm text-gray-700 mt-1">
+                  Created at: {e.createdAt}
+                </p>        
+              </div>
+        ))
+        :
+        (
+          <p className="text-center text-gray-500 mt-6">No expenses made yet.</p>
+        )
+      }
+      </div> 
 
       {/*right section*/}
       <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
