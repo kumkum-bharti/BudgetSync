@@ -7,6 +7,8 @@ import Start from "../pages/start"
 import OCR from "../pages/expense"
 import SplitPurchase from "../pages/splitPurchase"
 import GroupPurchase from "../pages/groupPurchase"
+import Analytics from "../pages/analytics"
+import ExpenseList from "../pages/expenseList"
 
 const AppRoutes = () => {
     return (
@@ -19,6 +21,8 @@ const AppRoutes = () => {
             <Route path="/ocr" element={<OCR />} />
             <Route path="/sp" element={<SplitPurchase />} />
             <Route path="/groupPurchase" element={<GroupPurchase />} />
+            <Route path="/expenseList" element={<ExpenseList />} />
+            <Route path="/analytics" element={<Analytics />} />
 
         </Routes>
     );

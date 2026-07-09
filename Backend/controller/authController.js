@@ -73,7 +73,7 @@ const login=async(req,res)=>{
         }
         
         
-        const token=jwt.sign({ id:user._id }, secret, { expiresIn: '2400h' });
+        const token=jwt.sign({ id:user._id }, secret, { expiresIn: '24h' });
         if(!token){
             return res.status(500).json({message:"Error generating token"});
         }
@@ -138,4 +138,20 @@ const searchUsers = async (req, res) => {
 };
 
 
-module.exports= {beginRegister,register,verify,login,getUsers,searchUsers};
+const checkAuth = async (req, res) => {
+  try {
+    const userId = req._id;
+    const user = await User.findById(userId).select("-password");
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    return res.status(200).json({ name: user.name, email: user.email, phone: user.phone, id: user._id });
+  } catch (err) {
+    return res.status(500).json({ message: "Error checking auth", error: err.message });
+  }
+};
+
+
+module.exports= {beginRegister,register,verify,login,getUsers,searchUsers,checkAuth};

@@ -4,11 +4,7 @@ const splitPurchase = require('../models/sp');
 const Purchase = require('../models/Purchase');
 const Request = require('../models/request');
 const mongoose = require("mongoose");
-
-function isValidGST(gstin) {
-    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-    return gstRegex.test(gstin);
-}
+const { generateExpenseSummary } = require('../utils/googleVision');
 
 const addExpense = async (req, res) => {
     try {
@@ -16,79 +12,64 @@ const addExpense = async (req, res) => {
 
         const user = req._id;
 
+        console.log("addExpense called with:", { name, title, expenseAmount, category, paymentMode, GSTNumber, BillNumber, purchaseId, user });
 
         if (!name || !title || !expenseAmount || !user || !GSTNumber || !BillNumber || !purchaseId) {
             return res.status(400).json({ message: "Please fill the required fields" });
         }
-
 
         const person = await User.findById(user);
         if (!person) {
             return res.status(404).json({ message: "Invalid User" });
         }
 
-
-        console.log("purchaseId received:", purchaseId);
-        console.log("Length:", purchaseId.length);
-        // console.log("IsValidHex24:", /^[a-fA-F0-9]{24}$/.test(purchaseId));
-
-        // const cleanedId = purchaseId.trim().slice(0, 24);
-        // console.log("Length:", cleanedId.length);
-
-
-
-
-        // if (!mongoose.Types.ObjectId.isValid(cleanedId)) {
-        //     return res.status(400).json({ message: "Invalid ObjectId format" });
-        // }
+        console.log("purchaseId received:", purchaseId, "Type:", typeof purchaseId);
 
         const purchase = await Purchase.findById(purchaseId);
         if (!purchase) {
-            return res.status(404).json({ message: "Invalid Purchase" });
+            return res.status(404).json({ message: "Invalid Purchase - not found in DB" });
         }
 
-
-        if (user != purchase.userID) {
-            return res.status(404).json({ message: "Invalid Purchase" });
-        }
+        console.log("Found purchase:", purchase._id, "Owner:", purchase.userID, "Current user:", user);
 
         if (String(user) !== String(purchase.userID)) {
-            return res.status(403).json({ message: "Unauthorized: Purchase doesn't belong to user" });
+            return res.status(403).json({ message: "Unauthorized: This purchase doesn't belong to you" });
         }
 
-        console.log("vgv");
-
-        if (person.name.toLowerCase() != name.toLowerCase()) {
-            return res.status(400).json({ message: "Bill owner name is not same as the user" });
+        if (person.name.toLowerCase() !== name.toLowerCase()) {
+            return res.status(400).json({ message: "Bill owner name doesn't match your name" });
         }
 
-        if (expenseAmount > purchase.restAmount) {
-            return res.status(400).json({ message: "Invalid amount" });
+        const parsedAmount = parseFloat(expenseAmount);
+        if (parsedAmount > purchase.restAmount) {
+            return res.status(400).json({ message: `Invalid amount: Expense (${parsedAmount}) exceeds remaining (${purchase.restAmount})` });
         }
 
-        console.log(GSTNumber);
-        const isValid = isValidGST(GSTNumber);
-        if (!isValid) {
-            return res.status(400).json({ message: "Invalid gst number" });
-        }
+        purchase.restAmount -= parsedAmount;
 
-
-
-
-        purchase.restAmount -= expenseAmount;
-
-        const restAmount = expenseAmount;
-        const newExpense = new Expense({ name, title, expenseAmount, user, category, paymentMode, GSTNumber, BillNumber, purchaseId, restAmount });
+        const newExpense = new Expense({
+            name,
+            title,
+            expenseAmount: parsedAmount,
+            user,
+            category,
+            paymentMode,
+            GSTNumber,
+            BillNumber,
+            purchaseId,
+            restAmount: parsedAmount
+        });
         await newExpense.save();
-
-
 
         purchase.expensesList.push(newExpense._id);
         await purchase.save();
 
+        console.log("Expense saved successfully:", newExpense._id);
         return res.status(201).json({ message: "Expense added", expense: newExpense._id })
     }
     catch (err) {
+        console.error("Error in addExpense:", err.message);
+        console.error("Stack:", err.stack);
         return res.status(500).json({ message: "Error creating expense", error: err.message });
     }
 
@@ -118,7 +99,7 @@ const addSplitPurchase = async (req, res) => {
 const addPurchase = async (req, res) => {
     try {
         const { userID, amount, splitPurchaseId } = req.body;
-        
+
         if (!userID || !amount || !splitPurchaseId) {
             return res.status(400).json({ message: "Please fill the required fields" });
         }
@@ -269,12 +250,6 @@ const reviewRequest = async (req, res) => {
             }
 
 
-            const isValid = isValidGST(GSTNumber);
-            if (!isValid) {
-                return res.status(400).json({ message: "Invalid gst number" });
-            }
-
-
             purchase.restAmount -= expenseAmount;
 
             const restAmount = expenseAmount;
@@ -344,16 +319,22 @@ const getRequests = async (req, res) => {
 
 const getExpenses = async (req, res) => {
     try {
-        const expenses = await Expense.find({ user: req._id }).sort({ createdAt: -1 });
+        const { purchaseId } = req.query;
 
-        if (expenses.length === 0) {
-            return res.status(400).json({ message: "No expenses added yet." });
+        console.log("getExpenses called with purchaseId:", purchaseId);
+
+        if (!purchaseId) {
+            return res.status(400).json({ message: "Purchase ID required" });
         }
 
+        const expenses = await Expense.find({ purchaseId: purchaseId }).sort({ createdAt: -1 });
+        console.log("Found expenses count:", expenses.length);
+        console.log("Found expenses:", JSON.stringify(expenses));
 
         return res.status(200).json({ expenses });
     }
     catch (err) {
+        console.error("Error in getExpenses:", err.message);
         return res.status(500).json({ message: "Error fetching expenses", error: err.message });
     }
 
@@ -500,5 +481,75 @@ const deleteSp = async (req, res) => {
 
 }
 
+const getAnalytics = async (req, res) => {
+    try {
+        const { spId } = req.query;
 
-module.exports = { addExpense, addSplitPurchase, addPurchase, editRequest, reviewRequest, getRequests, getExpenses, getPurchases, getSp, editSp, deletePurchase, deleteSp };
+        const sp = await splitPurchase.findById(spId).populate({
+            path: "purchases",
+            populate: [
+                { path: "userID", model: "User" },
+                { path: "expensesList", model: "Expense" }
+            ]
+        });
+
+        if (!sp) {
+            return res.status(404).json({ message: "Split purchase not found" });
+        }
+
+        const categoryBreakdown = {};
+        const totalByUser = {};
+        let totalSpent = 0;
+
+        for (const purchase of sp.purchases) {
+            const userName = purchase.userID.name;
+            totalByUser[userName] = (totalByUser[userName] || 0) + purchase.amount;
+
+            for (const expenseId of purchase.expensesList) {
+                const expense = sp.purchases[0].expensesList.find(e => e._id.equals(expenseId));
+                if (expense) {
+                    const category = expense.category || 'Other';
+                    categoryBreakdown[category] = (categoryBreakdown[category] || 0) + expense.expenseAmount;
+                    totalSpent += expense.expenseAmount;
+                }
+            }
+        }
+
+        const categoryData = Object.entries(categoryBreakdown).map(([name, value]) => ({
+            name,
+            value: parseFloat(value.toFixed(2)),
+            percentage: parseFloat(((value / totalSpent) * 100).toFixed(2))
+        }));
+
+        const userData = Object.entries(totalByUser).map(([name, value]) => ({
+            name,
+            amount: parseFloat(value.toFixed(2))
+        }));
+
+        return res.status(200).json({
+            groupName: sp.name,
+            totalBudget: sp.amount,
+            remainingBudget: sp.restAmount,
+            totalSpent: parseFloat(totalSpent.toFixed(2)),
+            spendPercentage: parseFloat(((totalSpent / sp.amount) * 100).toFixed(2)),
+            categoryBreakdown: categoryData,
+            userContribution: userData
+        });
+    }
+    catch (err) {
+        return res.status(500).json({ message: "Error fetching analytics", error: err.message });
+    }
+}
+
+const getExpenseSummary = async (req, res) => {
+    try {
+        const summary = await generateExpenseSummary(req._id);
+        return res.status(200).json({ summary });
+    } catch (err) {
+        return res.status(500).json({ message: "Error generating expense summary", error: err.message });
+    }
+}
+
+
+
+module.exports = { addExpense, addSplitPurchase, addPurchase, editRequest, reviewRequest, getRequests, getExpenses, getPurchases, getSp, editSp, deletePurchase, deleteSp, getAnalytics, getExpenseSummary };

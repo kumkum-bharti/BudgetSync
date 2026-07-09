@@ -13,7 +13,7 @@ const SplitPurchase = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearch, setSearched] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+
   let debounceTimer;
   const navigate = useNavigate();
 
@@ -119,14 +119,25 @@ const SplitPurchase = () => {
                 <div
                   key={group._id}
                   className="bg-white rounded-xl p-4 shadow-lg border hover:shadow-2xl transition-all duration-300"
-                  onClick={() => {
-                    handleGroup(group, group._id, true)
-                  }}
                 >
                   <h3 className="text-base sm:text-lg font-semibold text-indigo-600 mb-1">{group.name}</h3>
                   <p className="text-sm text-gray-700">Admin: {group.admin.name}</p>
                   <p className="text-sm text-gray-700">Total Amount: ₹{group.amount}</p>
                   <p className="text-sm text-gray-500">Members: {group.members.length}</p>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => handleGroup(group, group._id, true)}
+                      className="flex-1 bg-indigo-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-indigo-700 transition"
+                    >
+                      Manage
+                    </button>
+                    <button
+                      onClick={() => navigate('/analytics', { state: { spId: group._id } })}
+                      className="flex-1 bg-purple-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-purple-700 transition"
+                    >
+                      Analytics
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -152,12 +163,25 @@ const SplitPurchase = () => {
                     <div
                       key={group._id}
                       className="bg-white rounded-xl p-4 shadow-lg border hover:shadow-2xl transition-all duration-300"
-                      onClick={() => { handleGroup(group, group._id,false) }}
                     >
                       <h3 className="text-base sm:text-lg font-semibold text-emerald-600 mb-1">{group.name}</h3>
                       <p className="text-sm text-gray-700">Admin: {group.admin.name}</p>
                       <p className="text-sm text-gray-700">Total Amount: ₹{group.amount}</p>
                       <p className="text-sm text-gray-500">Members: {group.members.length}</p>
+                      <div className="flex gap-2 mt-4">
+                        <button
+                          onClick={() => handleGroup(group, group._id, false)}
+                          className="flex-1 bg-emerald-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-emerald-700 transition"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => navigate('/analytics', { state: { spId: group._id } })}
+                          className="flex-1 bg-purple-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-purple-700 transition"
+                        >
+                          Analytics
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

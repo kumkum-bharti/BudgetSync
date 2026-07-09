@@ -1,84 +1,60 @@
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-
-
-
-function parseBillText(text) {
-  const data = {};
-
-  text = text.replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[^ -~\n]+/g, '')
-    .replace(/₹/g, 'Rs');
-
-
-
-  const patterns = {
-    name: [/Name[:\s]+([A-Za-z\s]+)(?:\s*\(.*\))?/, /Customer[:\s]+([A-Za-z\s]+)/],
-    GSTNumber: [/GSTIN[:\s]*([0-9A-Z]{15})/, /GST\s*No\.?:?\s*([0-9A-Z]{15})/],
-    date: [/Date[:\s]*([\d\-\/: ]+)/, /Dated[:\s]*([\d\-\/: ]+)/],
-    time: [/(\d{2}:\d{2}(?::\d{2})?)/],
-    expenseAmount: [
-      /Grand\s+Total[^₹\d]*([₹Rs]?[0-9,.]+)/i,
-      /Total[:\s₹]*([0-9]+(?:\.[0-9]+)?)/i
-    ],
-    paymentMode: [/Paid by[:\s]+(Cash|Card|UPI|Bank Transfer)/i],
-  };
-
-
-  for (const key in patterns) {
-    for (const regex of patterns[key]) {
-      const match = text.match(regex);
-      if (match) {
-        data[key] = match[1].trim();
-        break;
-      }
-    }
-  }
-
-  const billNumberPatterns = [
-    /Bill\s*No[:.\s]*#?\s*(\d+)/i,
-    /Bill\s*Number[:.\s]*#?\s*(\d+)/i,
-    /Bill\s*No\.?\s*(\d+)/i,
-    /\bNo\.?\s*[:#]?\s*(\d{3,6})\b/i
-  ];
-
-  for (const pattern of billNumberPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      data.BillNumber = match[1];
-      break;
-    }
-  }
-
-
-  const phoneMatch = text.match(/(?:Phone|Mob|Contact)[:\s]*([6-9]\d{9})/);
-  if (phoneMatch) data.phone = phoneMatch[1];
-
-
-  const firstLine = text.split('\n').find(line => line.trim().length > 0);
-  if (firstLine && !data.businessName) data.title = firstLine.trim();
-
-
-  return data;
-}
-
-function ExpenseForm({ ocrData }) {
+function ExpenseForm({ ocrData, onClose, purchaseId }) {
   const navigate = useNavigate();
-  const rawpurchaseId = "687b895ffd3e12c36348abdb".trim();
-  console.log("purchaseId Length:", rawpurchaseId.length);
+  const location = useLocation();
+  const navPurchaseId = location.state?.purchaseId;
+  const finalPurchaseId = purchaseId || navPurchaseId || "687b895ffd3e12c36348abdb";
+  const [userName, setUserName] = useState(ocrData?.name || "");
+
+  console.log("ExpenseForm initialized with purchaseId:", finalPurchaseId);
 
   const [formData, setFormData] = useState({
-    ...ocrData,
-    category: 'Other',
-    paymentMode: 'Cash',
-    purchaseId: rawpurchaseId
+    name: ocrData?.name || "",
+    title: ocrData?.merchant || ocrData?.title || "",
+    expenseAmount: ocrData?.expenseAmount ?? 0,
+    category: ocrData?.category || 'Other',
+    paymentMode: ocrData?.paymentMode || 'Cash',
+    GSTNumber: ocrData?.GSTNumber || "",
+    BillNumber: ocrData?.BillNumber || "",
+    purchaseId: finalPurchaseId
   });
 
   const requiredFields = ['name', 'title', 'expenseAmount', 'GSTNumber', 'BillNumber'];
-  const isFakeBill = requiredFields.some(field => !ocrData[field]);
+  const isFakeBill = requiredFields.some(field => !formData[field]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.post('http://localhost:3000/auth/check', {}, {
+          withCredentials: true,
+        });
+
+        if (response.data?.name) {
+          setUserName(response.data.name);
+        }
+      } catch (error) {
+        console.error('Unable to fetch logged-in user:', error.response?.data || error.message);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    setFormData({
+      name: userName || ocrData?.name || "",
+      title: ocrData?.merchant || ocrData?.title || "",
+      expenseAmount: ocrData?.expenseAmount ?? 0,
+      category: ocrData?.category || 'Other',
+      paymentMode: ocrData?.paymentMode || 'Cash',
+      GSTNumber: ocrData?.GSTNumber || "",
+      BillNumber: ocrData?.BillNumber || "",
+      purchaseId: finalPurchaseId
+    });
+  }, [ocrData, finalPurchaseId, userName]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -89,13 +65,26 @@ function ExpenseForm({ ocrData }) {
     if (isFakeBill) return alert("This bill seems fake. Missing required fields.");
 
     try {
-      console.log("Sending purchaseId:", formData.purchaseId);
-      await axios.post("http://localhost:3000/sp/addExpense", formData, { withCredentials: true });
+      console.log("Submitting expense with data:", formData);
+      const convertedData = {
+        ...formData,
+        expenseAmount: parseFloat(formData.expenseAmount)
+      };
+      console.log("Converted data:", convertedData);
+
+      const response = await axios.post("http://localhost:3000/sp/addExpense", convertedData, { withCredentials: true });
+      console.log("Success response:", response.data);
       alert("Expense successfully added!");
-      navigate('/start');
+      if (navPurchaseId) {
+        navigate('/expenseList', { state: { purchaseId: navPurchaseId } });
+      } else {
+        navigate('/start');
+      }
     } catch (error) {
-      console.error(error.response.data);
-      alert("Error submitting expense.");
+      console.error("Full error object:", error);
+      console.error("Error response data:", error.response?.data);
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message;
+      alert(`Error submitting expense: ${errorMsg}`);
     }
   };
 
@@ -105,7 +94,16 @@ function ExpenseForm({ ocrData }) {
         onSubmit={handleSubmit}
         className="bg-white w-full max-w-lg p-8 rounded-lg shadow-lg space-y-6"
       >
-        <h2 className="text-2xl font-bold text-center">Submit Expense</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Submit Expense</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          >
+            ✕
+          </button>
+        </div>
 
         {requiredFields.map((field) => (
           <div key={field}>
@@ -114,9 +112,10 @@ function ExpenseForm({ ocrData }) {
             </label>
             <input
               type={field === "expenseAmount" ? "number" : "text"}
+              name={field}
               value={formData[field] || ""}
-              readOnly
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md shadow-sm"
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>
         ))}
@@ -171,88 +170,46 @@ function ExpenseForm({ ocrData }) {
 
 export default function OCR() {
   const [image, setImage] = useState(null);
-  const [text, setText] = useState("");
   const [data, setData] = useState(null);
-  const [expenses,setExpenses]=useState([]);
-
-
-   useEffect(()=>{
-
-    const fetchexpenses=async()=>{
-      try{
-          const response=await axios.get("http://localhost:3000/sp/getExpenses",{
-              withCredentials:true,
-          });
-          
-          console.log(response.data.expenses);
-          setExpenses(response.data.expenses);
-      }
-      catch(err){
-        console.log("Error: Error getting purchase");
-      }
-    };
-
-    fetchexpenses();
-  },[]);
-
+  const [ocrError, setOcrError] = useState(null);
 
   const handleImageUpload = (e) => {
     setImage(e.target.files[0]);
+    setOcrError(null);
   };
 
   const handleSubmit = async () => {
-    if (!image) return;
+    if (!image) {
+      setOcrError("Please select an image first");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("image", image);
 
     try {
-      const res = await axios.post("http://localhost:3000/upload", formData, { withCredentials: true, });
-      setText(res.data.text);
-      setData(parseBillText(res.data.text));
+      console.log("Starting OCR upload...");
+      const res = await axios.post("http://localhost:3000/upload", formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      console.log("OCR response:", res.data);
+      setData(res.data.billData || null);
+      setOcrError(null);
     } catch (err) {
       console.error("Error during OCR:", err);
+      const errorMsg = err.response?.data?.message || err.response?.data?.details || err.message || "Unknown error";
+      setOcrError(`OCR Error: ${errorMsg}`);
+      alert(`OCR Error: ${errorMsg}`);
     }
   };
 
-  
+
 
   return (
     <div className="w-full flex flex-col md:flex-row md:justify-center bg-gray-50 min-h-screen">
-      {/*left section*/}
-
-      <div className="w-full md:w-3/4 p-4 sm:p-6 bg-purple-100">
-          <div className="w-full md:w-3/4 p-4 sm:p-6 bg-purple-100">
-          <h2 className="text-2xl font-bold mb-4 text-center text-purple-700">
-            Expenses
-          </h2>
-          </div>
-      
-      {expenses.length>0?
-        expenses.map((e,index)=>(
-          <div
-            key={index}
-            className="bg-white rounded-xl shadow-md p-4  hover:shadow-lg transition">
-            <h3 className="text-lg font-semibold text-[#2F2F2F]">
-                  {e.title || "Unknown"}
-            </h3>
-            <p className="text-sm text-gray-700 mt-1">
-                  Total Amount: ₹{e.expenseAmount}
-                </p>  
-             <p className="text-sm text-gray-700 mt-1">
-                  Created at: {e.createdAt}
-                </p>        
-              </div>
-        ))
-        :
-        (
-          <p className="text-center text-gray-500 mt-6">No expenses made yet.</p>
-        )
-      }
-      </div> 
-
-      {/*right section*/}
-      <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
+      {/*right section - main OCR uploader*/}
+      <div className="w-full md:w-3/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
         <div className="min-h-screen bg-[#EEDEF6] text-[#2F2F2F] flex flex-col items-center px-6 py-12">
           <h2 className="text-3xl font-bold mb-6 text-[#2F2F2F]">🧾 Bill OCR Extractor</h2>
 
@@ -274,7 +231,13 @@ export default function OCR() {
               Extract Data
             </button>
 
-            {text && (
+            {ocrError && (
+              <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {ocrError}
+              </div>
+            )}
+
+            {data && (
               <pre className="mt-6 p-4 bg-[#FEE1B6] rounded-lg text-sm overflow-x-auto whitespace-pre-wrap">
                 {JSON.stringify(data, null, 2)}
               </pre>
@@ -283,7 +246,7 @@ export default function OCR() {
 
           {data && (
             <div className="w-full max-w-2xl mt-10">
-              <ExpenseForm ocrData={data} />
+              <ExpenseForm ocrData={data} onClose={() => setData(null)} />
             </div>
           )}
         </div>

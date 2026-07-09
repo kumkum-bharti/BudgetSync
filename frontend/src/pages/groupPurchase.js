@@ -7,7 +7,7 @@ export default function GroupPurchase() {
   const navigate = useNavigate();
   const sendSpId = location.state?.spId;
   const sendSp = location.state?.sp;
-  const role=location.state?.role;
+  const role = location.state?.role;
 
   const members = sendSp.members;
 
@@ -15,14 +15,14 @@ export default function GroupPurchase() {
   const [restPurchases, setRestPurchases] = useState([]);
   const [newPurchase, setNewPurchase] = useState('');
   const [newPurchaseId, setNewPurchaseId] = useState('');
-  const [amount, setAmount] = useState();
+  const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         const res = await axios.get("http://localhost:3000/sp/getPurchases", {
           params: { spId: sendSpId },
           withCredentials: true,
@@ -53,8 +53,15 @@ export default function GroupPurchase() {
     setRestPurchases(updatedRest);
   }, [purchases, members]);
 
-  const handleSubmit = () => {
-    navigate('/ocr')
+  const handleViewExpenses = (purchase) => {
+    console.log("groupPurchase: Clicking on purchase:", purchase._id, purchase.userID?.name);
+    navigate('/expenseList', {
+      state: {
+        purchaseId: purchase._id,
+        userName: purchase.userID?.name,
+        purchaseAmount: purchase.amount
+      }
+    });
   };
 
   const addNewPurchase = async (e) => {
@@ -98,8 +105,8 @@ export default function GroupPurchase() {
             purchases.map((purchase, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition"
-                onClick={() => { handleSubmit(purchase) }}
+                className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition cursor-pointer"
+                onClick={() => { handleViewExpenses(purchase) }}
               >
                 <h3 className="text-lg font-semibold text-[#2F2F2F]">
                   {purchase.userID?.name || "Unknown"}
@@ -120,56 +127,56 @@ export default function GroupPurchase() {
 
 
       {/* RIGHT SIDEBAR (Form) */}
-      {role?(
-      <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
-        <h2 className="text-center text-lg sm:text-xl font-bold text-blue-500 mb-6">Add new purchase to the Group</h2>
+      {role ? (
+        <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
+          <h2 className="text-center text-lg sm:text-xl font-bold text-blue-500 mb-6">Add new purchase to the Group</h2>
 
-        <form onSubmit={addNewPurchase} className="space-y-4">
+          <form onSubmit={addNewPurchase} className="space-y-4">
 
-          <select
-            value={newPurchaseId}
-            onChange={(e) => {
-              const selected = restPurchases.find(member => member._id === e.target.value);
-              setNewPurchaseData(selected);
-            }}
-            className="w-full p-2 border rounded-md text-sm sm:text-base"
-            required
-          >
-            <option value="">Select a member</option>
-            {restPurchases.map((member) => (
-              <option key={member._id} value={member._id}>
-                {member.name}
-              </option>
-            ))}
-          </select>
-
-
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Total Amount"
-            className="w-full p-2 border rounded-md text-sm sm:text-base"
-            required
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-purple-700 text-white font-semibold py-2 rounded-md hover:bg-purple-800 transition text-sm sm:text-base"
-          >
-            Create Purchase
-          </button>
-        </form>
+            <select
+              value={newPurchaseId}
+              onChange={(e) => {
+                const selected = restPurchases.find(member => member._id === e.target.value);
+                setNewPurchaseData(selected);
+              }}
+              className="w-full p-2 border rounded-md text-sm sm:text-base"
+              required
+            >
+              <option value="">Select a member</option>
+              {restPurchases.map((member) => (
+                <option key={member._id} value={member._id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
 
 
-      </div>):(
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Total Amount"
+              className="w-full p-2 border rounded-md text-sm sm:text-base"
+              required
+            />
+
+            <button
+              type="submit"
+              className="w-full bg-purple-700 text-white font-semibold py-2 rounded-md hover:bg-purple-800 transition text-sm sm:text-base"
+            >
+              Create Purchase
+            </button>
+          </form>
+
+
+        </div>) : (
         <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-purple-100">
-          </div>
-         
+        </div>
+
       )
-     }
+      }
     </div>
-  
+
   );
 
 }

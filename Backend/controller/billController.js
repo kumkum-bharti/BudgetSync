@@ -1,15 +1,26 @@
-const Tesseract=require("tesseract.js");
+const { extractTextFromBill } = require('../utils/googleVision');
 
-const billUpload=async(req,res) =>{  
-   const imagePath=req.file.path;
-    
-
+const billUpload = async (req, res) => {
   try {
-    const { data: { text } } = await Tesseract.recognize(imagePath, "eng");    
-    return res.status(200).json({ text });
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const imagePath = req.file.path;
+    console.log('Bill upload started for:', imagePath);
+
+    const billData = await extractTextFromBill(imagePath);
+    console.log('Bill upload successful');
+    return res.status(200).json({ billData });
   } catch (err) {
-    return res.status(500).json({ error: "OCR failed", details: err.message });
+    console.error('Bill upload error:', err.message);
+    console.error('Stack:', err.stack);
+    return res.status(500).json({
+      error: "Bill extraction failed",
+      details: err.message,
+      message: `Failed to extract bill data: ${err.message}`
+    });
   }
 }
 
-module.exports={billUpload};
+module.exports = { billUpload };
