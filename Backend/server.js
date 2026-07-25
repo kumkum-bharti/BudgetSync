@@ -10,41 +10,11 @@ const multer = require("multer");
 const path = require("path");
 const { billUpload } = require("./controller/billController");
 
-const port = 3000;
-
 const app = express();
-app.use(express.json());
 
-
-app.use(cors({
-    origin: "http://localhost:3001",
-    credentials: true
-}));
-
-app.use(cookieParser());
-
-
-
-
-
-const storage = multer.diskStorage({
-    destination: "./bills",
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    },
-});
-
-const fileFilter = (req, file, cb) => {
-    // Allow both JPEG and PNG files
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (allowedMimes.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(new Error('Only JPEG and PNG images are allowed'), false);
-    }
-};
-
-const upload = multer({ storage, fileFilter });
+const allowedOrigins = [
+    'https://your-frontend-app.vercel.app', 
+];
 
 const corsOptions = {
     origin: (origin, callback) => {
@@ -53,7 +23,10 @@ const corsOptions = {
         }
 
         const isLocalOrigin = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-        if (isLocalOrigin) {
+        
+        const isAllowedProduction = allowedOrigins.includes(origin);
+
+        if (isLocalOrigin || isAllowedProduction) {
             return callback(null, true);
         }
 
@@ -65,20 +38,41 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-app.post("/upload", upload.single("image"), billUpload);
+app.use(express.json());
+app.use(cookieParser());
 
-connectDB().then(() => {
-    console.log("Database connected successfully");
-})
+const storage = multer.diskStorage({
+    destination: "./bills",
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    },
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only JPEG and PNG images are allowed'), false);
+    }
+};
+
+const upload = multer({ storage, fileFilter });
+
+app.post("/upload", upload.single("image"), billUpload);
 
 app.get('/', (req, res) => {
     return res.status(200).json({ message: "Working" });
-})
+});
+
 app.use('/auth', authRoutes);
 app.use('/sp', spRoutes);
 
-app.listen(port, () => {
-    console.log(`server is running on ${port}`);
+const PORT = process.env.PORT || 5000;
+
+connectDB().then(() => {
+    console.log("Database connected successfully");
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
 });
-
-
