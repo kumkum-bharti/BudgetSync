@@ -1,4 +1,4 @@
-const Expense = require('../models/Expenses');
+const Expense = require('../models/expenses');
 const User = require('../models/User');
 const splitPurchase = require('../models/sp');
 const Purchase = require('../models/Purchase');
