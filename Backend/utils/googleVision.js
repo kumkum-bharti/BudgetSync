@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Expense = require("../models/Expenses");
+const Expense = require("../models/expenses");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
