@@ -11,7 +11,7 @@ export default function CurvedSplitPage() {
         useEffect(() => {
             const timer = setTimeout(() => {
                 setAnimatedHeights(data);
-            }, 200); // delay before animation starts
+            }, 200);
             return () => clearTimeout(timer);
         }, []);
 
@@ -67,11 +67,11 @@ export default function CurvedSplitPage() {
 
                             {/* Animated arrow on tallest bar */}
                             <div
-                                className="absolute text-blacktransition-all duration-1000 ease-out"
+                                className="absolute text-black transition-all duration-1000 ease-out"
                                 style={{
                                     right: 0,
                                     bottom: `${maxHeight}%`,
-                                    transform: "translateY(50%)", // center arrow slightly above bar
+                                    transform: "translateY(50%)",
                                 }}
                             >
                                 <svg

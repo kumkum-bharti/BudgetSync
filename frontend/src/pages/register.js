@@ -4,6 +4,7 @@ import Textinput from '../components/Textinput';
 import '../index.css';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
 
 export default function Register() {
    const [name, setName] = useState('');
@@ -23,7 +24,7 @@ export default function Register() {
    const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-         const res = await axios.post("http://localhost:3000/auth/beginRegister",
+         const res = await axios.post("https://budgetsync-1-3kj3.onrender.com/auth/beginRegister",
             { name, phone, email });
          navigate('/Register', { state:data})
          console.log('Response:', res.data);

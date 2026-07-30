@@ -9,7 +9,7 @@ export default function GroupPurchase() {
   const sendSp = location.state?.sp;
   const role = location.state?.role;
 
-  const members = sendSp.members;
+  const members = sendSp?.members || [];
 
   const [purchases, setPurchases] = useState([]);
   const [restPurchases, setRestPurchases] = useState([]);
@@ -18,13 +18,19 @@ export default function GroupPurchase() {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const token = localStorage.getItem('token');
 
-        const res = await axios.get("http://localhost:3000/sp/getPurchases", {
+        const res = await axios.get(`${API_BASE_URL}/sp/getPurchases`, {
           params: { spId: sendSpId },
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
           withCredentials: true,
         });
         setPurchases(res.data);
@@ -67,20 +73,31 @@ export default function GroupPurchase() {
   const addNewPurchase = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3000/sp/addPurchase", { userID: newPurchaseId, amount: amount, splitPurchaseId: sendSpId }, { withCredentials: true });
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_BASE_URL}/sp/addPurchase`, 
+        { userID: newPurchaseId, amount: amount, splitPurchaseId: sendSpId }, 
+        { 
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true 
+        }
+      );
       console.log("Response:", res.data);
       setPurchases(prev => [...prev, res.data]);
     }
     catch (err) {
       console.error("Error fetching split purchase:", err.response?.data || err.message);
-      alert("Only admins are allowed to create new purchase")
+      alert("Only admins are allowed to create new purchase");
     }
-  }
+  };
 
   const setNewPurchaseData = (restPurchase) => {
-    setNewPurchase(restPurchase.name)
-    setNewPurchaseId(restPurchase._id)
-  }
+    if (restPurchase) {
+      setNewPurchase(restPurchase.name);
+      setNewPurchaseId(restPurchase._id);
+    }
+  };
 
   return (
     <div className="w-full flex flex-col md:flex-row md:justify-center bg-gray-50 min-h-screen">
@@ -88,18 +105,18 @@ export default function GroupPurchase() {
       {/* LEFT MAIN SECTION */}
       <div className="w-full md:w-3/4 p-4 sm:p-6 bg-purple-100">
         <h2 className="text-2xl font-bold mb-4 text-center text-purple-700">
-          {sendSp.name} Purchases
+          {sendSp?.name} Purchases
         </h2>
 
-        <h3>
-          <h4>Admin:{sendSp.admin.name}</h4>
-          <h4>Amount:{sendSp.amount}</h4>
-          <h4>Remaining Amount:{sendSp.restAmount}</h4>
-        </h3>
+        <div>
+          <h4>Admin: {sendSp?.admin?.name}</h4>
+          <h4>Amount: {sendSp?.amount}</h4>
+          <h4>Remaining Amount: {sendSp?.restAmount}</h4>
+        </div>
 
         {loading && <p className="text-center text-gray-500">Loading purchases...</p>}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
 
           {purchases.length > 0 ?
             purchases.map((purchase, index) => (
@@ -125,7 +142,6 @@ export default function GroupPurchase() {
         </div>
       </div>
 
-
       {/* RIGHT SIDEBAR (Form) */}
       {role ? (
         <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
@@ -150,7 +166,6 @@ export default function GroupPurchase() {
               ))}
             </select>
 
-
             <input
               type="number"
               value={amount}
@@ -168,15 +183,10 @@ export default function GroupPurchase() {
             </button>
           </form>
 
-
         </div>) : (
         <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-purple-100">
         </div>
-
-      )
-      }
+      )}
     </div>
-
   );
-
 }

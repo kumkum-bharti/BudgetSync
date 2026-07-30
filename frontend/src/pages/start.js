@@ -10,11 +10,20 @@ export default function Start() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
 
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
+  const token = localStorage.getItem("token");
+
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.post('http://localhost:3000/auth/check', {}, {
-          withCredentials: true,
+        const response = await fetch("https://budgetsync-1-3kj3.onrender.com/auth/check", {
+          method: "POST",
+                headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+          credentials: "include"
         });
         setUser(response.data);
       } catch (err) {
@@ -30,8 +39,12 @@ export default function Start() {
       try {
         setSummaryLoading(true);
         setSummaryError(null);
+        
 
-        const res = await axios.get('http://localhost:3000/sp/getExpenseSummary', {
+        const res = await axios.get(`${API_BASE_URL}/sp/getExpenseSummary`, {
+          headers: {
+          Authorization: `Bearer ${token}`
+        },
           withCredentials: true,
         });
 
@@ -161,7 +174,7 @@ export default function Start() {
                       setSummaryLoading(true);
                       setSummaryError(null);
 
-                      const res = await axios.get('http://localhost:3000/sp/getExpenseSummary', {
+                      const res = await axios.get(`${API_BASE_URL}/sp/getExpenseSummary`, {
                         withCredentials: true,
                       });
 

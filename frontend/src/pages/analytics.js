@@ -12,12 +12,19 @@ export default function Analytics() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
+    
     useEffect(() => {
         const fetchAnalytics = async () => {
             try {
                 setLoading(true);
-                const res = await axios.get('http://localhost:3000/sp/getAnalytics', {
+                const token = localStorage.getItem('token'); // Retrieve token from localStorage
+
+                const res = await axios.get(`${API_BASE_URL}/sp/getAnalytics`, {
                     params: { spId },
+                    headers: {
+                        Authorization: `Bearer ${token}` // Pass the Bearer token here
+                    },
                     withCredentials: true
                 });
                 setAnalytics(res.data);

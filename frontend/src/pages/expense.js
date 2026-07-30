@@ -8,6 +8,8 @@ function ExpenseForm({ ocrData, onClose, purchaseId }) {
   const navPurchaseId = location.state?.purchaseId;
   const finalPurchaseId = purchaseId || navPurchaseId || "687b895ffd3e12c36348abdb";
   const [userName, setUserName] = useState(ocrData?.name || "");
+  
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
 
   console.log("ExpenseForm initialized with purchaseId:", finalPurchaseId);
 
@@ -28,7 +30,11 @@ function ExpenseForm({ ocrData, onClose, purchaseId }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.post('http://localhost:3000/auth/check', {}, {
+        const token = localStorage.getItem('token');
+        const response = await axios.post(`${API_BASE_URL}/auth/check`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
           withCredentials: true,
         });
 
@@ -72,7 +78,13 @@ function ExpenseForm({ ocrData, onClose, purchaseId }) {
       };
       console.log("Converted data:", convertedData);
 
-      const response = await axios.post("http://localhost:3000/sp/addExpense", convertedData, { withCredentials: true });
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_BASE_URL}/sp/addExpense`, convertedData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        withCredentials: true
+      });
       console.log("Success response:", response.data);
       alert("Expense successfully added!");
       if (navPurchaseId) {
@@ -173,6 +185,8 @@ export default function OCR() {
   const [data, setData] = useState(null);
   const [ocrError, setOcrError] = useState(null);
 
+  const API_BASE_URL = "https://budgetsync-1-3kj3.onrender.com";
+
   const handleImageUpload = (e) => {
     setImage(e.target.files[0]);
     setOcrError(null);
@@ -189,9 +203,13 @@ export default function OCR() {
 
     try {
       console.log("Starting OCR upload...");
-      const res = await axios.post("http://localhost:3000/upload", formData, {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_BASE_URL}/upload`, formData, {
         withCredentials: true,
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
       });
       console.log("OCR response:", res.data);
       setData(res.data.billData || null);
@@ -203,8 +221,6 @@ export default function OCR() {
       alert(`OCR Error: ${errorMsg}`);
     }
   };
-
-
 
   return (
     <div className="w-full flex flex-col md:flex-row md:justify-center bg-gray-50 min-h-screen">
@@ -254,7 +270,4 @@ export default function OCR() {
 
     </div>
   );
-
 }
-
-

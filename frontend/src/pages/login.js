@@ -9,31 +9,48 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const isDisabled = !email || !password;
+
+  const isDisabled = !email || !password || loading;
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post("http://localhost:3000/auth/login", { email, password }, {
-        withCredentials: true
-      });
+    setError('');
+    setLoading(true);
 
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      );
+      
+      
       console.log('Response:', res.data);
+
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+      } else if (res.data.jwt) {
+        localStorage.setItem('token', res.data.jwt);
+      }
+
       navigate('/start');
     } catch (err) {
       console.error('Error submitting form:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="bg-gradient-to-r from-purple-100 to-purple-400 min-h-screen flex items-center justify-center px-4">
-      <div className="flex flex-col md:flex-row bg-white bg-opacity-20 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden max-w-4xl w-full ">
+      <div className="flex flex-col md:flex-row bg-white bg-opacity-20 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden max-w-4xl w-full">
 
-        {/* Left Side Image */}
-
-
-        {/* Right Side Form */}
+        {/* Form Container */}
         <motion.div
           className="w-full md:w-1/2 p-8 space-y-6 bg-purple-300"
           initial={{ x: 100, opacity: 0 }}
@@ -41,6 +58,12 @@ export default function Login() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-2xl font-bold text-center text-white">Welcome Back</h2>
+
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Textinput
@@ -57,7 +80,7 @@ export default function Login() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-black"
                 />
                 <button
                   type="button"
@@ -81,13 +104,13 @@ export default function Login() {
             <button
               type="submit"
               disabled={isDisabled}
-              className={`w-full py-2 rounded transition font-semibold
-                ${isDisabled
-                  ? 'bg-purple-300 text-white cursor-not-allowed'
-                  : 'bg-purple-500 text-white hover:bg-purple-500'
-                }`}
+              className={`w-full py-2 rounded transition font-semibold ${
+                isDisabled
+                  ? 'bg-purple-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
             >
-              Login
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 

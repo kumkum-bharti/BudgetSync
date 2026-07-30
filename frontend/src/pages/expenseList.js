@@ -17,13 +17,19 @@ export default function ExpenseList() {
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState(null);
 
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
+
     useEffect(() => {
         const fetchExpenses = async () => {
             try {
                 setLoading(true);
                 console.log("expenseList: purchaseId from location state:", purchaseId);
-                const res = await axios.get("http://localhost:3000/sp/getExpenses", {
+                const token = localStorage.getItem('token');
+                const res = await axios.get(`${API_BASE_URL}/sp/getExpenses`, {
                     params: { purchaseId },
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
                     withCredentials: true,
                 });
                 console.log("expenseList: Response from backend:", res.data);
@@ -49,7 +55,11 @@ export default function ExpenseList() {
             setSummaryLoading(true);
             setSummaryError(null);
 
-            const res = await axios.get('http://localhost:3000/sp/getExpenseSummary', {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`${API_BASE_URL}/sp/getExpenseSummary`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
                 withCredentials: true,
             });
 

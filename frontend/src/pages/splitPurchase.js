@@ -17,18 +17,32 @@ const SplitPurchase = () => {
   let debounceTimer;
   const navigate = useNavigate();
 
-
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/sp/getSp", {
+        const activeToken = localStorage.getItem("token");
+
+        if (!activeToken) {
+          console.error("No token found in localStorage.");
+          setLoading(false);
+          return;
+        }
+
+        const res = await axios.get(`${API_BASE_URL}/sp/getSp`, {
+          headers: {
+            Authorization: `Bearer ${activeToken}`
+          },
           withCredentials: true,
         });
         setspAdmin(res.data.spAdmin);
         setspMember(res.data.SPmember);
 
-        const res2 = await axios.get("http://localhost:3000/auth/getUsers", {
+        const res2 = await axios.get(`${API_BASE_URL}/auth/getUsers`, {
+          headers: {
+            Authorization: `Bearer ${activeToken}`
+          },
           withCredentials: true,
         });
         setMembers(res2.data.users);
@@ -43,14 +57,16 @@ const SplitPurchase = () => {
     fetchData();
   }, []);
 
-
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3000/sp/addSp", { name: spName, amount, members: selectedMembers }, { withCredentials: true });
+      const activeToken = localStorage.getItem("token");
+      const res = await axios.post(`${API_BASE_URL}/sp/addSp`, { name: spName, amount, members: selectedMembers }, { 
+        headers: {
+          Authorization: `Bearer ${activeToken}`
+        },
+        withCredentials: true 
+      });
       console.log("Response:", res.data);
     }
     catch (err) {
@@ -71,7 +87,11 @@ const SplitPurchase = () => {
           return;
         }
 
-        const res = await axios.get(`http://localhost:3000/auth/searchUsers?name=${text}`, {
+        const activeToken = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}/auth/searchUsers?name=${text}`, {
+          headers: {
+            Authorization: `Bearer ${activeToken}`
+          },
           withCredentials: true,
         });
 
@@ -87,28 +107,21 @@ const SplitPurchase = () => {
     setSelectedMembers(prev => [...prev, id]);
   }
 
-
   const selectedMemberNames = useMemo(() => {
     return selectedMembers
       .map(id => members.find(m => m._id === id)?.name)
       .filter(Boolean);
   }, [selectedMembers, members]);
 
-
   const handleGroup = (sp, spId, role) => {
     navigate('/groupPurchase', { state: { spId, sp, role } });
   };
 
-
-
-
   return (
     <div className="w-full flex flex-col md:flex-row md:justify-center bg-gray-50 min-h-screen">
-      {/* LEFT MAIN SECTION */}
       <div className="w-full md:w-3/4 p-4 sm:p-6 bg-purple-100">
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-10 text-center text-purple-800">Split Purchase</h1>
 
-        {/* ADMIN GROUPS */}
         {loading ? (
           <p className="text-center text-gray-600">Loading groups...</p>
         ) : spAdmin.length > 0 ? (
@@ -150,8 +163,6 @@ const SplitPurchase = () => {
         )}
 
         <div className="border-t my-8 sm:my-10 border-gray-300"></div>
-
-        {/* MEMBER GROUPS */}
 
         {loading ?
           (<p className="text-center text-gray-600">Loading groups...</p>) : (
@@ -195,7 +206,6 @@ const SplitPurchase = () => {
           )}
       </div>
 
-      {/* RIGHT SIDEBAR (Form) */}
       <div className="w-full md:w-1/4 px-4 sm:px-6 pt-6 pb-10 bg-white">
         <h2 className="text-center text-lg sm:text-xl font-bold text-blue-500 mb-6">Create Your Own Group</h2>
 
@@ -255,7 +265,6 @@ const SplitPurchase = () => {
         </form>
       </div>
     </div>
-
   );
 }
 

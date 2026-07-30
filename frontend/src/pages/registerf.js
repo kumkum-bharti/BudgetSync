@@ -5,6 +5,7 @@ import '../index.css';
 import axios from 'axios';
 
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://budgetsync-1-3kj3.onrender.com";
 
 export default function Register() {
    const [verifynum, setNum] = useState('');
@@ -23,14 +24,14 @@ export default function Register() {
 
       try {
          if(verify){
-            const res=await axios.post("http://localhost:3000/auth/register",
+            const res=await axios.post("https://budgetsync-1-3kj3.onrender.com/auth/register",
                                     {name,phone,email,password});
             console.log('Response',res.data);
             alert("Registered Successfully!");
             navigate('/login')
         }
         else{
-         const res = await axios.post("http://localhost:3000/auth/verify",
+         const res = await axios.post("https://budgetsync-1-3kj3.onrender.com/auth/verify",
                                       { verifynum,email });
          console.log( res.data);
          const flag=res.data;
@@ -40,7 +41,7 @@ export default function Register() {
             setVerify(true);
          }
          else
-            alert("Wrong OTP")                         
+            alert("Wrong OTP")                        
 
          }
       }

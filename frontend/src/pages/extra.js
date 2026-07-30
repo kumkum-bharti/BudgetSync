@@ -18,7 +18,7 @@ function detectCategory(text) {
     }
   }
 
-  return "Other"; // fallback
+  return "Other";
 }
 
 const [formData, setFormData] = useState({
@@ -31,7 +31,6 @@ const [formData, setFormData] = useState({
   BillNumber: "",
 });
 
-// On receiving parsed data from backend
 const handleOCRResponse = (data) => {
   setFormData(prev => ({ ...prev, ...data }));
 };
